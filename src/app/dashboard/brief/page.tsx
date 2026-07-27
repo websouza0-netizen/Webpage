@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
 import type { BriefFormValues } from "@/lib/onboarding-schema";
+import { Reveal } from "@/components/motion/reveal";
 
 export default async function BriefPage() {
   const supabase = await createClient();
@@ -25,15 +26,19 @@ export default async function BriefPage() {
   if (!brief) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">Brief</h1>
-        <Card>
-          <CardContent className="flex flex-col items-start gap-3 py-8">
-            <p className="text-sm text-muted-foreground">You haven&apos;t submitted a brief yet.</p>
-            <Button asChild>
-              <Link href="/onboarding">Start your brief</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <Reveal>
+          <h1 className="text-2xl font-semibold">Brief</h1>
+        </Reveal>
+        <Reveal delay={0.05}>
+          <Card>
+            <CardContent className="flex flex-col items-start gap-3 py-8">
+              <p className="text-sm text-muted-foreground">You haven&apos;t submitted a brief yet.</p>
+              <Button asChild>
+                <Link href="/onboarding">Start your brief</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </Reveal>
       </div>
     );
   }

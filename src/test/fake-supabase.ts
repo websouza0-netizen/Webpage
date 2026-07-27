@@ -73,12 +73,15 @@ class TableApi {
     return Promise.resolve({ data: row, error: null });
   }
 
-  upsert(row: Row, opts?: { onConflict?: string }) {
+  upsert(row: Row, opts?: { onConflict?: string; ignoreDuplicates?: boolean }) {
     const rows = this.db.tables[this.table] ?? (this.db.tables[this.table] = []);
     const key = opts?.onConflict ?? UNIQUE_KEYS[this.table];
     const idx = key ? rows.findIndex((r) => r[key] === row[key]) : -1;
-    if (idx >= 0) rows[idx] = { ...rows[idx], ...row };
-    else rows.push({ ...row });
+    if (idx >= 0) {
+      if (!opts?.ignoreDuplicates) rows[idx] = { ...rows[idx], ...row };
+    } else {
+      rows.push({ ...row });
+    }
     this.db.calls.push({ table: this.table, op: "upsert", payload: row });
     return Promise.resolve({ data: row, error: null });
   }

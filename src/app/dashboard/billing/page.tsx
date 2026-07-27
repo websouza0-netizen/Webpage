@@ -55,97 +55,104 @@ export default async function BillingPage() {
       </Reveal>
 
       <Reveal>
-      <Card>
-        <CardHeader>
-          <CardTitle>Current plan</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            {subscription ? (
-              <>
-                <p className="font-medium capitalize">
-                  {subscription.plan} · {subscription.billing_interval}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {subscription.current_period_end
-                    ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
-                    : ""}
-                </p>
-                <Badge className="mt-2" variant={subscription.status === "active" ? "default" : "destructive"}>
-                  {subscription.status}
-                </Badge>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">No active plan yet.</p>
-            )}
-            <p className="mt-2 text-sm text-muted-foreground">{tokenBalance} free edit request(s) remaining</p>
-          </div>
-          {client?.stripe_customer_id && (
-            <CheckoutButton endpoint="/api/billing/portal" body={{}} variant="outline">
-              Manage billing
-            </CheckoutButton>
-          )}
-        </CardContent>
-      </Card>
-
-      {addons && addons.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Your add-ons</CardTitle>
+            <CardTitle>Current plan</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            {addons.map((addon) => (
-              <div key={addon.type} className="flex items-center justify-between text-sm">
-                <span className="capitalize">{addon.type.replace("_", " ")}</span>
-                <Badge variant={addon.status === "active" ? "default" : "destructive"}>{addon.status}</Badge>
-              </div>
-            ))}
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              {subscription ? (
+                <>
+                  <p className="font-medium capitalize">
+                    {subscription.plan} · {subscription.billing_interval}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {subscription.current_period_end
+                      ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
+                      : ""}
+                  </p>
+                  <Badge className="mt-2" variant={subscription.status === "active" ? "default" : "destructive"}>
+                    {subscription.status}
+                  </Badge>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active plan yet.</p>
+              )}
+              <p className="mt-2 text-sm text-muted-foreground">{tokenBalance} free edit request(s) remaining</p>
+            </div>
+            {client?.stripe_customer_id && (
+              <CheckoutButton endpoint="/api/billing/portal" body={{}} variant="outline">
+                Manage billing
+              </CheckoutButton>
+            )}
           </CardContent>
         </Card>
+      </Reveal>
+
+      {addons && addons.length > 0 && (
+        <Reveal delay={0.05}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Your add-ons</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              {addons.map((addon) => (
+                <div key={addon.type} className="flex items-center justify-between text-sm">
+                  <span className="capitalize">{addon.type.replace("_", " ")}</span>
+                  <Badge variant={addon.status === "active" ? "default" : "destructive"}>{addon.status}</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </Reveal>
       )}
 
       <CollapsibleSection title="Browse other plans" defaultOpen={!subscription}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <StaggerGroup className="grid gap-4 sm:grid-cols-2">
           {otherPlans.map((plan) => (
-            <Card key={plan.id}>
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
-                <CardDescription>{plan.tagline}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-2xl font-semibold">
-                  {formatEUR(priceForInterval(plan, "monthly"))}
-                  <span className="text-sm font-normal text-muted-foreground">/mo</span>
-                </p>
-                <CheckoutButton
-                  endpoint="/api/checkout/plan"
-                  body={{ plan: plan.id, interval: "monthly" }}
-                  disabled={readOnly}
-                >
-                  Switch to {plan.name}
-                </CheckoutButton>
-              </CardContent>
-            </Card>
+            <StaggerItem key={plan.id}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{plan.name}</CardTitle>
+                  <CardDescription>{plan.tagline}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3">
+                  <p className="text-2xl font-semibold">
+                    {formatEUR(priceForInterval(plan, "monthly"))}
+                    <span className="text-sm font-normal text-muted-foreground">/mo</span>
+                  </p>
+                  <CheckoutButton
+                    endpoint="/api/checkout/plan"
+                    body={{ plan: plan.id, interval: "monthly" }}
+                    disabled={readOnly}
+                  >
+                    Switch to {plan.name}
+                  </CheckoutButton>
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </CollapsibleSection>
 
       <CollapsibleSection title="Browse add-ons" defaultOpen={(addons ?? []).length === 0}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <StaggerGroup className="grid gap-4 sm:grid-cols-2">
           {otherAddons.map((addon) => (
-            <Card key={addon.type}>
-              <CardHeader>
-                <CardTitle>{addon.name}</CardTitle>
-                <CardDescription>{addon.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CheckoutButton endpoint="/api/checkout/addon" body={{ type: addon.type }} disabled={readOnly}>
-                  Add {addon.name}
-                </CheckoutButton>
-              </CardContent>
-            </Card>
+            <StaggerItem key={addon.type}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{addon.name}</CardTitle>
+                  <CardDescription>{addon.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CheckoutButton endpoint="/api/checkout/addon" body={{ type: addon.type }} disabled={readOnly}>
+                    Add {addon.name}
+                  </CheckoutButton>
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </CollapsibleSection>
 
       <CollapsibleSection title="Payment history" defaultOpen={false}>
