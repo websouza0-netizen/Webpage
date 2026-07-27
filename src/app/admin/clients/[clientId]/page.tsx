@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { PipelineEditor } from "@/components/admin/pipeline-editor";
 import type { DeliveryStep } from "@/components/dashboard/pipeline-status";
+import { Reveal } from "@/components/motion/reveal";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -65,10 +66,10 @@ export default async function AdminClientDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">{client.full_name || client.email}</h1>
         <p className="text-sm text-muted-foreground">{client.email}</p>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>

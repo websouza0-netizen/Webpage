@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,10 +60,17 @@ export function AdminSidebar({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
-                  active && "bg-secondary text-foreground",
+                  "relative flex items-center gap-1.5 rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                  active && "text-foreground",
                 )}
               >
+                {active && (
+                  <motion.span
+                    layoutId="admin-nav-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 -z-10 rounded-md bg-secondary"
+                  />
+                )}
                 {item.label}
                 {!!count && (
                   <Badge variant="default" className="h-4 min-w-4 px-1 text-[10px]">

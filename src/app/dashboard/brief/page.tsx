@@ -70,20 +70,22 @@ export default async function BriefPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Brief</h1>
         <p className="text-sm text-muted-foreground">
           {brief.locked_at
             ? "Locked once development starts — further changes go through a request."
             : "Editable until development starts."}
         </p>
-      </div>
-      <OnboardingForm
-        isEcommerce={subscription?.plan === "ecommerce"}
-        accountEmail={user!.email ?? ""}
-        defaultValues={defaultValues}
-        locked={!!brief.locked_at}
-      />
+      </Reveal>
+      <Reveal delay={0.05}>
+        <OnboardingForm
+          isEcommerce={subscription?.plan === "ecommerce"}
+          accountEmail={user!.email ?? ""}
+          defaultValues={defaultValues}
+          locked={!!brief.locked_at}
+        />
+      </Reveal>
     </div>
   );
 }

@@ -15,7 +15,7 @@ describe("ensureClientRecord", () => {
   });
 
   it("creates a clients row and seeds the free edit-token balance for a new user", async () => {
-    await ensureClientRecord({
+    const result = await ensureClientRecord({
       id: "user-1",
       email: "new@example.com",
       user_metadata: { full_name: "New User" },
@@ -23,6 +23,7 @@ describe("ensureClientRecord", () => {
 
     expect(fake.tables.clients).toEqual([{ id: "user-1", email: "new@example.com", full_name: "New User" }]);
     expect(fake.tables.edit_tokens).toEqual([{ client_id: "user-1", balance: 2 }]);
+    expect(result.isNewClient).toBe(true);
   });
 
   it("falls back to user_metadata.name when full_name is absent", async () => {
@@ -36,9 +37,10 @@ describe("ensureClientRecord", () => {
       edit_tokens: [{ client_id: "user-3", balance: 0 }],
     });
 
-    await ensureClientRecord({ id: "user-3", email: "c@example.com" });
+    const result = await ensureClientRecord({ id: "user-3", email: "c@example.com" });
 
     // ignoreDuplicates means a second bootstrap call must not top the balance back up to 2.
     expect(fake.tables.edit_tokens.find((r) => r.client_id === "user-3")?.balance).toBe(0);
+    expect(result.isNewClient).toBe(false);
   });
 });

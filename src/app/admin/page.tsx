@@ -1,6 +1,8 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { PLANS, formatEUR } from "@/lib/pricing";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { CountUp } from "@/components/motion/count-up";
 
 const ACTIVE_STATUSES = ["active", "trialing"];
 
@@ -29,7 +31,8 @@ export default async function AdminOverviewPage() {
   const stats = [
     {
       label: "MRR",
-      value: formatEUR(Math.round(mrr)),
+      value: Math.round(mrr),
+      format: (n: number) => formatEUR(n),
       note: "Plan subscriptions only — add-ons aren't included (real EUR prices live in Stripe, not here).",
     },
     {
@@ -51,21 +54,25 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Overview</h1>
         <p className="text-sm text-muted-foreground">A snapshot of the whole platform.</p>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      </Reveal>
+      <StaggerGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader>
-              <CardDescription>{stat.label}</CardDescription>
-              <CardTitle className="text-3xl">{stat.value}</CardTitle>
-              <p className="text-xs text-muted-foreground">{stat.note}</p>
-            </CardHeader>
-          </Card>
+          <StaggerItem key={stat.label}>
+            <Card>
+              <CardHeader>
+                <CardDescription>{stat.label}</CardDescription>
+                <CardTitle className="text-3xl">
+                  <CountUp value={stat.value} format={stat.format} />
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">{stat.note}</p>
+              </CardHeader>
+            </Card>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerGroup>
     </div>
   );
 }

@@ -15,7 +15,7 @@ const UNIQUE_KEYS: Record<string, string> = {
 export type FakeSupabase = {
   tables: Record<string, Row[]>;
   calls: { table: string; op: string; payload?: unknown }[];
-  from: (table: string) => TableApi;
+  from: (table: string) => ReturnType<typeof makeFrom>;
 };
 
 class SelectBuilder {
@@ -56,6 +56,24 @@ class UpdateBuilder {
   }
 }
 
+// Awaitable directly (`await ...upsert(...)`) and also chainable with
+// `.select(cols)` (`await ...upsert(...).select("id")`), matching the two
+// call shapes actually used in the app.
+class UpsertBuilder implements PromiseLike<{ data: Row; error: null }> {
+  constructor(
+    private row: Row,
+    private inserted: boolean,
+  ) {}
+  select(_cols: string) {
+    return Promise.resolve({ data: this.inserted ? [this.row] : [], error: null });
+  }
+  then<TResult1 = { data: Row; error: null }, TResult2 = never>(
+    onfulfilled?: ((value: { data: Row; error: null }) => TResult1 | PromiseLike<TResult1>) | null,
+  ): PromiseLike<TResult1 | TResult2> {
+    return Promise.resolve({ data: this.row, error: null }).then(onfulfilled);
+  }
+}
+
 class TableApi {
   constructor(
     private table: string,
@@ -77,13 +95,15 @@ class TableApi {
     const rows = this.db.tables[this.table] ?? (this.db.tables[this.table] = []);
     const key = opts?.onConflict ?? UNIQUE_KEYS[this.table];
     const idx = key ? rows.findIndex((r) => r[key] === row[key]) : -1;
+    let inserted = true;
     if (idx >= 0) {
+      inserted = false;
       if (!opts?.ignoreDuplicates) rows[idx] = { ...rows[idx], ...row };
     } else {
       rows.push({ ...row });
     }
     this.db.calls.push({ table: this.table, op: "upsert", payload: row });
-    return Promise.resolve({ data: row, error: null });
+    return new UpsertBuilder(row, inserted);
   }
 
   update(patch: Row) {
@@ -98,7 +118,7 @@ class TableApi {
 export function createFakeSupabase(seed: Record<string, Row[]> = {}): FakeSupabase {
   const db = {
     tables: structuredClone(seed),
-    calls: [],
+    calls: [] as FakeSupabase["calls"],
   } as FakeSupabase;
   db.from = (table: string) => new TableApi(table, db);
   return db;

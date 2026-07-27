@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { ProvisionSiteForm } from "@/components/admin/provision-site-form";
+import { Reveal } from "@/components/motion/reveal";
 
 export default async function AdminNewSitePage() {
   const serviceRole = createServiceRoleClient();
@@ -14,11 +15,13 @@ export default async function AdminNewSitePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Sites</h1>
         <p className="text-sm text-muted-foreground">Provision a new site for a client.</p>
-      </div>
-      <ProvisionSiteForm clients={clientsWithoutSite} />
+      </Reveal>
+      <Reveal delay={0.05}>
+        <ProvisionSiteForm clients={clientsWithoutSite} />
+      </Reveal>
     </div>
   );
 }

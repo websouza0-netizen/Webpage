@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -53,42 +54,44 @@ export default async function AdminClientsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Clients</h1>
         <p className="text-sm text-muted-foreground">{clients?.length ?? 0} total.</p>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      </Reveal>
+      <StaggerGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(clients ?? []).map((client) => {
           const sub = latestSubByClient.get(client.id);
           const hasBrief = briefClientIds.has(client.id);
           return (
-            <Link key={client.id} href={`/admin/clients/${client.id}`}>
-              <Card className="h-full transition-colors hover:border-accent">
-                <CardHeader>
-                  <CardTitle>{client.full_name || client.email}</CardTitle>
-                  <CardDescription>{client.email}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {sub ? (
-                      <>
-                        <Badge variant="outline">{sub.plan}</Badge>
-                        <Badge variant={STATUS_VARIANT[sub.status] ?? "outline"}>{sub.status}</Badge>
-                      </>
-                    ) : (
-                      <Badge variant="outline">No subscription</Badge>
-                    )}
-                    <Badge variant={hasBrief ? "secondary" : "outline"}>
-                      {hasBrief ? "Brief submitted" : "No brief yet"}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{currentStepLabel(client.id)}</p>
-                </CardContent>
-              </Card>
-            </Link>
+            <StaggerItem key={client.id}>
+              <Link href={`/admin/clients/${client.id}`}>
+                <Card className="h-full transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-accent hover:shadow-md">
+                  <CardHeader>
+                    <CardTitle>{client.full_name || client.email}</CardTitle>
+                    <CardDescription>{client.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {sub ? (
+                        <>
+                          <Badge variant="outline">{sub.plan}</Badge>
+                          <Badge variant={STATUS_VARIANT[sub.status] ?? "outline"}>{sub.status}</Badge>
+                        </>
+                      ) : (
+                        <Badge variant="outline">No subscription</Badge>
+                      )}
+                      <Badge variant={hasBrief ? "secondary" : "outline"}>
+                        {hasBrief ? "Brief submitted" : "No brief yet"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{currentStepLabel(client.id)}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </StaggerItem>
           );
         })}
-      </div>
+      </StaggerGroup>
     </div>
   );
 }

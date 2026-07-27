@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { Reveal } from "@/components/motion/reveal";
 
 const LIMIT = 200;
 
@@ -18,13 +19,13 @@ export default async function AdminEmailLogPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Email log</h1>
         <p className="text-sm text-muted-foreground">
           Showing {logs?.length ?? 0}{truncated ? ` of ${count}` : ""} most recent
           {truncated && " — truncated to the latest 200"}.
         </p>
-      </div>
+      </Reveal>
       <Card>
         <CardContent>
           {logs && logs.length > 0 ? (

@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { RequestStatusSelect } from "@/components/admin/request-status-select";
+import { Reveal } from "@/components/motion/reveal";
 
 export default async function AdminRequestsPage() {
   const serviceRole = createServiceRoleClient();
@@ -18,10 +19,11 @@ export default async function AdminRequestsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Edit requests</h1>
         <p className="text-sm text-muted-foreground">{requests?.length ?? 0} total, across all clients.</p>
-      </div>
+      </Reveal>
+      <Reveal delay={0.05}>
       <Card>
         <CardContent>
           {requests && requests.length > 0 ? (
@@ -52,6 +54,7 @@ export default async function AdminRequestsPage() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 
 export default async function AdminBriefsPage() {
   const serviceRole = createServiceRoleClient();
@@ -13,34 +14,39 @@ export default async function AdminBriefsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Briefs</h1>
         <p className="text-sm text-muted-foreground">{briefs?.length ?? 0} submitted.</p>
-      </div>
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          {(briefs ?? []).map((brief) => (
-            <Link
-              key={brief.id}
-              href={`/admin/briefs/${brief.id}`}
-              className="flex items-center justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0 hover:text-accent"
-            >
-              <div>
-                <p className="text-sm font-medium">{brief.brand_name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {brief.contact_email} · {new Date(brief.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <Badge variant={brief.reviewed_at ? "outline" : "secondary"}>
-                {brief.reviewed_at ? "Reviewed" : "New"}
-              </Badge>
-            </Link>
-          ))}
-          {(!briefs || briefs.length === 0) && (
-            <p className="text-sm text-muted-foreground">No briefs submitted yet.</p>
-          )}
-        </CardContent>
-      </Card>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <Card>
+          <CardContent className="flex flex-col gap-3">
+            <StaggerGroup className="flex flex-col gap-3">
+              {(briefs ?? []).map((brief) => (
+                <StaggerItem key={brief.id}>
+                  <Link
+                    href={`/admin/briefs/${brief.id}`}
+                    className="flex items-center justify-between gap-4 border-b border-border pb-3 transition-colors last:border-0 last:pb-0 hover:text-accent"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{brief.brand_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {brief.contact_email} · {new Date(brief.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge variant={brief.reviewed_at ? "outline" : "secondary"}>
+                      {brief.reviewed_at ? "Reviewed" : "New"}
+                    </Badge>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+            {(!briefs || briefs.length === 0) && (
+              <p className="text-sm text-muted-foreground">No briefs submitted yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </Reveal>
     </div>
   );
 }

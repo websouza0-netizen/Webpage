@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { MarkReviewedButton } from "@/components/admin/mark-reviewed-button";
+import { Reveal } from "@/components/motion/reveal";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -49,7 +50,7 @@ export default async function AdminBriefDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <Reveal className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{brief.brand_name}</h1>
           <p className="text-sm text-muted-foreground">
@@ -63,7 +64,7 @@ export default async function AdminBriefDetailPage({
           </Badge>
           {!brief.reviewed_at && <MarkReviewedButton briefId={brief.id} />}
         </div>
-      </div>
+      </Reveal>
 
       <Card>
         <CardHeader>

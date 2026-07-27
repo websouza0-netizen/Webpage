@@ -65,6 +65,7 @@ describe("Stripe webhook idempotency", () => {
   it("processes an event exactly once and short-circuits a redelivery with 200", async () => {
     nextEvent = { id: "evt_1", type: "customer.subscription.deleted", data: { object: planSubscriptionObject() } };
     retrievedSubscription = planSubscriptionObject();
+    fake.tables.subscriptions = [{ stripe_subscription_id: "sub_123", status: "active" }];
 
     const first = await POST(makeRequest());
     expect(first.status).toBe(200);
@@ -141,18 +142,14 @@ describe("handler failures", () => {
       type: "customer.subscription.deleted",
       data: { object: planSubscriptionObject() },
     };
-    // No matching client row -> getClientContact's .single() throws "no rows",
-    // simulated here by making the update itself fail instead.
     const originalFrom = fake.from.bind(fake);
     fake.from = (table: string) => {
-      const api = originalFrom(table);
       if (table === "subscriptions") {
-        return {
-          ...api,
-          update: () => ({ eq: async () => ({ data: null, error: { message: "boom" } }) }),
-        } as typeof api;
+        return { update: () => ({ eq: async () => ({ data: null, error: { message: "boom" } }) }) } as ReturnType<
+          typeof originalFrom
+        >;
       }
-      return api;
+      return originalFrom(table);
     };
 
     const res = await POST(makeRequest());
@@ -162,8 +159,9 @@ describe("handler failures", () => {
 
 describe("missing signature", () => {
   it("returns 400 without touching Stripe or the database", async () => {
-    const req = new Request("http://localhost/api/webhooks/stripe", { method: "POST", body: "{}" });
-    const res = await POST(req);
+    signatureHeader = null;
+    const res = await POST(makeRequest());
     expect(res.status).toBe(400);
+    expect(fake.tables.stripe_webhook_events ?? []).toHaveLength(0);
   });
 });
