@@ -1,12 +1,15 @@
 -- Storage RLS for the `client-assets` bucket (onboarding logo/photo
--- uploads). The bucket itself must be created manually in the Supabase
--- Dashboard (Storage → New bucket → "client-assets", private) — bucket
--- creation isn't something a SQL migration can do.
+-- uploads). The bucket itself is created here too, via storage.buckets —
+-- contrary to older Supabase docs, this works fine in a SQL migration.
 --
 -- Objects are stored at `{client_id}/{uuid}-{filename}`, so ownership is
 -- just the first path segment. Admin brief-detail views read assets via
 -- signed URLs generated server-side with the service-role client, which
 -- bypasses these policies entirely — no separate admin policy needed.
+
+insert into storage.buckets (id, name, public)
+values ('client-assets', 'client-assets', false)
+on conflict (id) do nothing;
 
 create policy client_assets_insert_own on storage.objects
   for insert to authenticated

@@ -1,9 +1,7 @@
 // Real EUR pricing for the two WebSouza subscription plans.
 
-// PLACEHOLDER — not yet confirmed against the live Stripe price. Replace
-// with the real `STRIPE_PRICE_EDIT_TOKEN` amount before shipping to
-// production; shown here clearly labeled rather than invented silently.
-export const EXTRA_EDIT_PRICE_EUR = 15;
+// Matches the live STRIPE_PRICE_EDIT_TOKEN price (confirmed against Stripe).
+export const EXTRA_EDIT_PRICE_EUR = 2.5;
 
 export const FREE_EDITS_PER_PERIOD = 2;
 
@@ -53,7 +51,8 @@ export function formatEUR(amount: number) {
   return new Intl.NumberFormat("en-IE", {
     style: "currency",
     currency: "EUR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
