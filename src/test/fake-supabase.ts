@@ -15,7 +15,7 @@ const UNIQUE_KEYS: Record<string, string> = {
 export type FakeSupabase = {
   tables: Record<string, Row[]>;
   calls: { table: string; op: string; payload?: unknown }[];
-  from: (table: string) => ReturnType<typeof makeFrom>;
+  from: (table: string) => TableApi;
 };
 
 class SelectBuilder {
@@ -64,6 +64,7 @@ class UpsertBuilder implements PromiseLike<{ data: Row; error: null }> {
     private row: Row,
     private inserted: boolean,
   ) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for call-signature parity with Postgrest's .select(cols)
   select(_cols: string) {
     return Promise.resolve({ data: this.inserted ? [this.row] : [], error: null });
   }
@@ -74,7 +75,7 @@ class UpsertBuilder implements PromiseLike<{ data: Row; error: null }> {
   }
 }
 
-class TableApi {
+export class TableApi {
   constructor(
     private table: string,
     private db: FakeSupabase,
@@ -110,16 +111,17 @@ class TableApi {
     return new UpdateBuilder(this.table, this.db, patch);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for call-signature parity with Postgrest's .select(cols)
   select(_cols: string) {
     return new SelectBuilder(this.table, this.db);
   }
 }
 
 export function createFakeSupabase(seed: Record<string, Row[]> = {}): FakeSupabase {
-  const db = {
+  const db: FakeSupabase = {
     tables: structuredClone(seed),
-    calls: [] as FakeSupabase["calls"],
-  } as FakeSupabase;
-  db.from = (table: string) => new TableApi(table, db);
+    calls: [],
+    from: (table: string) => new TableApi(table, db),
+  };
   return db;
 }

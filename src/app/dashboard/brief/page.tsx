@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
 import type { BriefFormValues } from "@/lib/onboarding-schema";
 import { Reveal } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function BriefPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const t = dictionaryFor(await getServerLocale()).dashboard.brief;
 
   const [{ data: brief }, { data: subscription }] = await Promise.all([
     supabase.from("onboarding_briefs").select("*").eq("client_id", user!.id).maybeSingle(),
@@ -27,14 +29,14 @@ export default async function BriefPage() {
     return (
       <div className="flex flex-col gap-4">
         <Reveal>
-          <h1 className="text-2xl font-semibold">Brief</h1>
+          <h1 className="text-2xl font-semibold">{t.title}</h1>
         </Reveal>
         <Reveal delay={0.05}>
           <Card>
             <CardContent className="flex flex-col items-start gap-3 py-8">
-              <p className="text-sm text-muted-foreground">You haven&apos;t submitted a brief yet.</p>
+              <p className="text-sm text-muted-foreground">{t.notSubmitted}</p>
               <Button asChild>
-                <Link href="/onboarding">Start your brief</Link>
+                <Link href="/onboarding">{t.startYourBrief}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -71,12 +73,8 @@ export default async function BriefPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Brief</h1>
-        <p className="text-sm text-muted-foreground">
-          {brief.locked_at
-            ? "Locked once development starts — further changes go through a request."
-            : "Editable until development starts."}
-        </p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{brief.locked_at ? t.lockedNote : t.editableNote}</p>
       </Reveal>
       <Reveal delay={0.05}>
         <OnboardingForm

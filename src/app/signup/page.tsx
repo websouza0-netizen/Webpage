@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { Reveal } from "@/components/motion/reveal";
 
 function nextDestination(searchParams: URLSearchParams) {
   const plan = searchParams.get("plan");
@@ -72,7 +73,8 @@ function SignupForm() {
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-sm">
+      <Reveal className="w-full max-w-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Get started</CardTitle>
           <CardDescription>Create your WebSouza account.</CardDescription>
@@ -121,6 +123,7 @@ function SignupForm() {
           </p>
         </CardContent>
       </Card>
+      </Reveal>
     </WsEditorial>
   );
 }

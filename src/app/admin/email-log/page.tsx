@@ -3,11 +3,13 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { Reveal } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const LIMIT = 200;
 
 export default async function AdminEmailLogPage() {
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.emailLog;
 
   const { data: logs, count } = await serviceRole
     .from("email_log")
@@ -20,10 +22,10 @@ export default async function AdminEmailLogPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Email log</h1>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
         <p className="text-sm text-muted-foreground">
-          Showing {logs?.length ?? 0}{truncated ? ` of ${count}` : ""} most recent
-          {truncated && " — truncated to the latest 200"}.
+          {t.showing} {logs?.length ?? 0}
+          {truncated ? ` ${t.mostRecent} — ${t.truncatedNote}` : ` ${t.mostRecent}`}.
         </p>
       </Reveal>
       <Card>
@@ -32,12 +34,12 @@ export default async function AdminEmailLogPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Template</TableHead>
-                  <TableHead>Locale</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Provider message ID</TableHead>
-                  <TableHead>Sent at</TableHead>
+                  <TableHead>{t.recipient}</TableHead>
+                  <TableHead>{t.template}</TableHead>
+                  <TableHead>{t.locale}</TableHead>
+                  <TableHead>{t.status}</TableHead>
+                  <TableHead>{t.providerMessageId}</TableHead>
+                  <TableHead>{t.sentAt}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -56,7 +58,7 @@ export default async function AdminEmailLogPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">No emails logged yet.</p>
+            <p className="text-sm text-muted-foreground">{t.noEmails}</p>
           )}
         </CardContent>
       </Card>

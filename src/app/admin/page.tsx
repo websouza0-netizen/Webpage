@@ -1,13 +1,15 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
-import { PLANS, formatEUR } from "@/lib/pricing";
+import { PLANS } from "@/lib/pricing";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { CountUp } from "@/components/motion/count-up";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const ACTIVE_STATUSES = ["active", "trialing"];
 
 export default async function AdminOverviewPage() {
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.overview;
 
   const [{ data: subscriptions }, { count: pendingRequests }, { count: briefsAwaitingReview }] =
     await Promise.all([
@@ -30,33 +32,33 @@ export default async function AdminOverviewPage() {
 
   const stats = [
     {
-      label: "MRR",
+      label: t.mrr,
       value: Math.round(mrr),
-      format: (n: number) => formatEUR(n),
-      note: "Plan subscriptions only — add-ons aren't included (real EUR prices live in Stripe, not here).",
+      variant: "eur" as const,
+      note: t.mrrNote,
     },
     {
-      label: "Active subscriptions",
+      label: t.activeSubs,
       value: activeSubscriptions.length,
-      note: "Status active or trialing.",
+      note: t.activeSubsNote,
     },
     {
-      label: "Pending edit requests",
+      label: t.pendingRequests,
       value: pendingRequests ?? 0,
-      note: "Status = new.",
+      note: t.pendingRequestsNote,
     },
     {
-      label: "Briefs awaiting review",
+      label: t.briefsAwaiting,
       value: briefsAwaitingReview ?? 0,
-      note: "reviewed_at is null.",
+      note: t.briefsAwaitingNote,
     },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted-foreground">A snapshot of the whole platform.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
       <StaggerGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
@@ -65,7 +67,7 @@ export default async function AdminOverviewPage() {
               <CardHeader>
                 <CardDescription>{stat.label}</CardDescription>
                 <CardTitle className="text-3xl">
-                  <CountUp value={stat.value} format={stat.format} />
+                  <CountUp value={stat.value} variant={stat.variant} />
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">{stat.note}</p>
               </CardHeader>

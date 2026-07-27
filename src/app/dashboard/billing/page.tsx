@@ -8,6 +8,7 @@ import { CheckoutButton } from "@/components/dashboard/checkout-button";
 import { getDashboardContext } from "@/lib/dashboard-data";
 import { PLANS, formatEUR, priceForInterval } from "@/lib/pricing";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const ADDONS = [
   { type: "email_pro" as const, name: "Professional email", description: "A branded inbox for your domain." },
@@ -17,6 +18,7 @@ const ADDONS = [
 export default async function BillingPage() {
   const supabase = await createClient();
   const { user, subscription, tokenBalance, readOnly } = await getDashboardContext();
+  const t = dictionaryFor(await getServerLocale()).dashboard.billing;
 
   const { data: addons } = await supabase
     .from("addons")
@@ -50,14 +52,14 @@ export default async function BillingPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Billing</h1>
-        <p className="text-sm text-muted-foreground">Your plan, add-ons, and invoices.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
 
       <Reveal>
         <Card>
           <CardHeader>
-            <CardTitle>Current plan</CardTitle>
+            <CardTitle>{t.currentPlan}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -68,7 +70,7 @@ export default async function BillingPage() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {subscription.current_period_end
-                      ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
+                      ? `${t.renews} ${new Date(subscription.current_period_end).toLocaleDateString()}`
                       : ""}
                   </p>
                   <Badge className="mt-2" variant={subscription.status === "active" ? "default" : "destructive"}>
@@ -76,13 +78,15 @@ export default async function BillingPage() {
                   </Badge>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">No active plan yet.</p>
+                <p className="text-sm text-muted-foreground">{t.noActivePlanYet}</p>
               )}
-              <p className="mt-2 text-sm text-muted-foreground">{tokenBalance} free edit request(s) remaining</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {tokenBalance} {t.freeEditsRemaining}
+              </p>
             </div>
             {client?.stripe_customer_id && (
               <CheckoutButton endpoint="/api/billing/portal" body={{}} variant="outline">
-                Manage billing
+                {t.manageBilling}
               </CheckoutButton>
             )}
           </CardContent>
@@ -93,7 +97,7 @@ export default async function BillingPage() {
         <Reveal delay={0.05}>
           <Card>
             <CardHeader>
-              <CardTitle>Your add-ons</CardTitle>
+              <CardTitle>{t.yourAddons}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {addons.map((addon) => (
@@ -107,7 +111,7 @@ export default async function BillingPage() {
         </Reveal>
       )}
 
-      <CollapsibleSection title="Browse other plans" defaultOpen={!subscription}>
+      <CollapsibleSection title={t.browseOtherPlans} defaultOpen={!subscription}>
         <StaggerGroup className="grid gap-4 sm:grid-cols-2">
           {otherPlans.map((plan) => (
             <StaggerItem key={plan.id}>
@@ -126,7 +130,7 @@ export default async function BillingPage() {
                     body={{ plan: plan.id, interval: "monthly" }}
                     disabled={readOnly}
                   >
-                    Switch to {plan.name}
+                    {t.switchTo} {plan.name}
                   </CheckoutButton>
                 </CardContent>
               </Card>
@@ -135,7 +139,7 @@ export default async function BillingPage() {
         </StaggerGroup>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Browse add-ons" defaultOpen={(addons ?? []).length === 0}>
+      <CollapsibleSection title={t.browseAddons} defaultOpen={(addons ?? []).length === 0}>
         <StaggerGroup className="grid gap-4 sm:grid-cols-2">
           {otherAddons.map((addon) => (
             <StaggerItem key={addon.type}>
@@ -146,7 +150,7 @@ export default async function BillingPage() {
                 </CardHeader>
                 <CardContent>
                   <CheckoutButton endpoint="/api/checkout/addon" body={{ type: addon.type }} disabled={readOnly}>
-                    Add {addon.name}
+                    {t.add} {addon.name}
                   </CheckoutButton>
                 </CardContent>
               </Card>
@@ -155,16 +159,16 @@ export default async function BillingPage() {
         </StaggerGroup>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Payment history" defaultOpen={false}>
+      <CollapsibleSection title={t.paymentHistory} defaultOpen={false}>
         {invoices.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No invoices yet.</p>
+          <p className="text-sm text-muted-foreground">{t.noInvoices}</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t.date}</TableHead>
+                <TableHead>{t.amount}</TableHead>
+                <TableHead>{t.status}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

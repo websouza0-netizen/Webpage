@@ -3,12 +3,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { VisitBars } from "@/components/dashboard/visit-bars";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function SitesPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const t = dictionaryFor(await getServerLocale()).dashboard.sites;
 
   const { data: sites } = await supabase
     .from("sites")
@@ -33,15 +35,15 @@ export default async function SitesPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Sites</h1>
-        <p className="text-sm text-muted-foreground">Your live site and recent traffic.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
 
       {!sites || sites.length === 0 ? (
         <Reveal>
           <Card>
             <CardContent className="py-10 text-center text-sm text-muted-foreground">
-              Your site hasn&apos;t been provisioned yet — it&apos;ll show up here once it&apos;s live.
+              {t.notProvisioned}
             </CardContent>
           </Card>
         </Reveal>
@@ -58,14 +60,14 @@ export default async function SitesPage() {
                     <div>
                       <CardTitle>{site.domain}</CardTitle>
                       <CardDescription>
-                        Added {new Date(site.created_at).toLocaleDateString()}
+                        {t.added} {new Date(site.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
                   </CardHeader>
                   <CardContent>
                     {visits.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No visit data yet.</p>
+                      <p className="text-sm text-muted-foreground">{t.noVisitData}</p>
                     ) : (
                       <VisitBars visits={visits} max={max} />
                     )}

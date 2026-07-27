@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { clientIp, rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   sendWelcomeReceiptEmail,
   sendPaymentFailedEmail,
@@ -20,6 +21,14 @@ type SubscriptionMetadata = {
 };
 
 export async function POST(request: Request) {
+  // Generous limit: this only guards against someone hammering the public
+  // endpoint directly, not legitimate Stripe delivery bursts.
+  const { allowed, retryAfterSeconds } = rateLimit(`stripe-webhook:${clientIp(request)}`, {
+    limit: 100,
+    windowMs: 60_000,
+  });
+  if (!allowed) return rateLimitResponse(retryAfterSeconds);
+
   const body = await request.text();
   const signature = (await headers()).get("stripe-signature");
 

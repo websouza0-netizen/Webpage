@@ -3,13 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { EarningsChart, type DailyRevenue } from "@/components/dashboard/earnings-chart";
 import { getDashboardContext } from "@/lib/dashboard-data";
-import { formatEUR } from "@/lib/pricing";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { CountUp } from "@/components/motion/count-up";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function EarningsPage() {
   const supabase = await createClient();
   const { user, subscription } = await getDashboardContext();
+  const t = dictionaryFor(await getServerLocale()).dashboard.earnings;
 
   if (subscription?.plan !== "ecommerce") {
     redirect("/dashboard");
@@ -52,9 +53,9 @@ export default async function EarningsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Earnings</h1>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
         <p className="text-sm text-muted-foreground">
-          {site ? `Revenue reported by ${site.domain}, last 90 days.` : "No site provisioned yet."}
+          {site ? `${t.revenueBy} ${site.domain}, ${t.last90Days}` : t.noSite}
         </p>
       </Reveal>
 
@@ -62,9 +63,9 @@ export default async function EarningsPage() {
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Revenue</CardDescription>
+              <CardDescription>{t.revenue}</CardDescription>
               <CardTitle className="text-2xl">
-                <CountUp value={totalCents / 100} format={(n) => formatEUR(n)} />
+                <CountUp value={totalCents / 100} variant="eur" />
               </CardTitle>
             </CardHeader>
           </Card>
@@ -72,7 +73,7 @@ export default async function EarningsPage() {
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Orders</CardDescription>
+              <CardDescription>{t.orders}</CardDescription>
               <CardTitle className="text-2xl">
                 <CountUp value={orderCount} />
               </CardTitle>
@@ -82,9 +83,9 @@ export default async function EarningsPage() {
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Average order value</CardDescription>
+              <CardDescription>{t.aov}</CardDescription>
               <CardTitle className="text-2xl">
-                <CountUp value={aovCents / 100} format={(n) => formatEUR(n)} />
+                <CountUp value={aovCents / 100} variant="eur" />
               </CardTitle>
             </CardHeader>
           </Card>
@@ -94,7 +95,7 @@ export default async function EarningsPage() {
       <Reveal delay={0.1}>
         <Card>
           <CardHeader>
-            <CardTitle>Revenue over time</CardTitle>
+            <CardTitle>{t.revenueOverTime}</CardTitle>
           </CardHeader>
           <CardContent>
             <EarningsChart data={dailyRevenue} />

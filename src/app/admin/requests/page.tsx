@@ -3,9 +3,11 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { RequestStatusSelect } from "@/components/admin/request-status-select";
 import { Reveal } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function AdminRequestsPage() {
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.requestsPage;
 
   const [{ data: requests }, { data: clients }] = await Promise.all([
     serviceRole
@@ -20,8 +22,10 @@ export default async function AdminRequestsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Edit requests</h1>
-        <p className="text-sm text-muted-foreground">{requests?.length ?? 0} total, across all clients.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">
+          {requests?.length ?? 0} {t.totalAcrossClients}
+        </p>
       </Reveal>
       <Reveal delay={0.05}>
       <Card>
@@ -30,10 +34,10 @@ export default async function AdminRequestsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t.client}</TableHead>
+                  <TableHead>{t.description}</TableHead>
+                  <TableHead>{t.submitted}</TableHead>
+                  <TableHead>{t.status}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -50,7 +54,7 @@ export default async function AdminRequestsPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">No edit requests yet.</p>
+            <p className="text-sm text-muted-foreground">{t.noRequests}</p>
           )}
         </CardContent>
       </Card>

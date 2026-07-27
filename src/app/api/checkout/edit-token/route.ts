@@ -2,10 +2,17 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateStripeCustomer } from "@/lib/billing";
 import { stripe, editTokenPriceId } from "@/lib/stripe";
+import { clientIp, rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export async function POST(request: Request) {
+  const { allowed, retryAfterSeconds } = rateLimit(`checkout:${clientIp(request)}`, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!allowed) return rateLimitResponse(retryAfterSeconds);
+
   const supabase = await createClient();
   const {
     data: { user },

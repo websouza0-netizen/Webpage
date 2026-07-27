@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { animate, useInView, useReducedMotion } from "framer-motion";
+import { formatEUR } from "@/lib/pricing";
 
 export function CountUp({
   value,
-  format = (n) => String(Math.round(n)),
+  variant = "number",
+  suffix = "",
   className,
 }: {
   value: number;
-  format?: (n: number) => string;
+  variant?: "number" | "eur";
+  suffix?: string;
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -19,21 +22,20 @@ export function CountUp({
 
   useEffect(() => {
     if (!inView) return;
-    if (shouldReduceMotion) {
-      setDisplay(value);
-      return;
-    }
     const controls = animate(0, value, {
-      duration: 0.8,
+      duration: shouldReduceMotion ? 0 : 0.8,
       ease: [0.16, 1, 0.3, 1],
       onUpdate: setDisplay,
     });
     return () => controls.stop();
   }, [inView, value, shouldReduceMotion]);
 
+  const formatted = variant === "eur" ? formatEUR(display) : String(Math.round(display));
+
   return (
     <span ref={ref} className={className}>
-      {format(display)}
+      {formatted}
+      {suffix}
     </span>
   );
 }

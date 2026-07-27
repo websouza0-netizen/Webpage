@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { Reveal } from "@/components/motion/reveal";
 
 export default function ResetPasswordPage() {
   return (
@@ -66,7 +67,8 @@ function ResetPasswordForm() {
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-sm">
+      <Reveal className="w-full max-w-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Choose a new password</CardTitle>
           <CardDescription>Must be at least 8 characters.</CardDescription>
@@ -104,6 +106,7 @@ function ResetPasswordForm() {
           )}
         </CardContent>
       </Card>
+      </Reveal>
     </WsEditorial>
   );
 }

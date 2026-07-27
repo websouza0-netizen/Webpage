@@ -6,10 +6,12 @@ import { PipelineStatus, type DeliveryStep } from "@/components/dashboard/pipeli
 import { getDashboardContext } from "@/lib/dashboard-data";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { CountUp } from "@/components/motion/count-up";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function DashboardOverviewPage() {
   const supabase = await createClient();
   const { subscription, tokenBalance } = await getDashboardContext();
+  const t = dictionaryFor(await getServerLocale()).dashboard.overview;
 
   const { data: steps } = await supabase
     .from("delivery_steps")
@@ -26,19 +28,17 @@ export default async function DashboardOverviewPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted-foreground">
-          Where your site stands right now.
-        </p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
 
       <StaggerGroup className="grid gap-4 sm:grid-cols-3">
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Plan</CardDescription>
+              <CardDescription>{t.plan}</CardDescription>
               <CardTitle className="text-lg capitalize">
-                {subscription ? subscription.plan : "No active plan"}
+                {subscription ? subscription.plan : t.noActivePlan}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -53,8 +53,8 @@ export default async function DashboardOverviewPage() {
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Site</CardDescription>
-              <CardTitle className="text-lg">{site?.domain ?? "Not provisioned yet"}</CardTitle>
+              <CardDescription>{t.site}</CardDescription>
+              <CardTitle className="text-lg">{site?.domain ?? t.notProvisioned}</CardTitle>
             </CardHeader>
             <CardContent>
               {site && (
@@ -66,14 +66,14 @@ export default async function DashboardOverviewPage() {
         <StaggerItem>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Edit requests remaining</CardDescription>
+              <CardDescription>{t.editRequestsRemaining}</CardDescription>
               <CardTitle className="text-lg">
-                <CountUp value={tokenBalance} format={(n) => `${Math.round(n)} free`} />
+                <CountUp value={tokenBalance} suffix={` ${t.free}`} />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Link href="/dashboard/requests" className="text-sm text-accent underline underline-offset-4">
-                Submit a request
+                {t.submitRequest}
               </Link>
             </CardContent>
           </Card>
@@ -83,8 +83,8 @@ export default async function DashboardOverviewPage() {
       <Reveal delay={0.1}>
         <Card>
           <CardHeader>
-            <CardTitle>Delivery pipeline</CardTitle>
-            <CardDescription>Where your build is in the process.</CardDescription>
+            <CardTitle>{t.deliveryPipeline}</CardTitle>
+            <CardDescription>{t.deliveryPipelineSubtitle}</CardDescription>
           </CardHeader>
           <CardContent>
             <PipelineStatus steps={(steps as DeliveryStep[] | null) ?? []} />

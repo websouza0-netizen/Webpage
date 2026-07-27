@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function AdminBriefsPage() {
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.briefs;
 
   const { data: briefs } = await serviceRole
     .from("onboarding_briefs")
@@ -15,8 +17,10 @@ export default async function AdminBriefsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Briefs</h1>
-        <p className="text-sm text-muted-foreground">{briefs?.length ?? 0} submitted.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">
+          {briefs?.length ?? 0} {t.submitted}
+        </p>
       </Reveal>
       <Reveal delay={0.05}>
         <Card>
@@ -35,14 +39,14 @@ export default async function AdminBriefsPage() {
                       </p>
                     </div>
                     <Badge variant={brief.reviewed_at ? "outline" : "secondary"}>
-                      {brief.reviewed_at ? "Reviewed" : "New"}
+                      {brief.reviewed_at ? t.reviewed : t.new}
                     </Badge>
                   </Link>
                 </StaggerItem>
               ))}
             </StaggerGroup>
             {(!briefs || briefs.length === 0) && (
-              <p className="text-sm text-muted-foreground">No briefs submitted yet.</p>
+              <p className="text-sm text-muted-foreground">{t.noBriefs}</p>
             )}
           </CardContent>
         </Card>

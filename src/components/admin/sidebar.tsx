@@ -9,25 +9,30 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { en } from "@/lib/i18n/en";
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/clients", label: "Clients" },
-  { href: "/admin/briefs", label: "Briefs" },
-  { href: "/admin/requests", label: "Edit requests" },
-  { href: "/admin/sites/new", label: "Sites" },
-  { href: "/admin/email-log", label: "Email log" },
-];
+type AdminNav = (typeof en)["adminNav"];
 
 export function AdminSidebar({
   briefsAwaitingReview,
   pendingRequests,
+  nav,
 }: {
   briefsAwaitingReview?: number;
   pendingRequests?: number;
+  nav: AdminNav;
 }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const NAV_ITEMS = [
+    { href: "/admin", label: nav.overview },
+    { href: "/admin/clients", label: nav.clients },
+    { href: "/admin/briefs", label: nav.briefs },
+    { href: "/admin/requests", label: nav.requests },
+    { href: "/admin/sites/new", label: nav.sites },
+    { href: "/admin/email-log", label: nav.emailLog },
+  ];
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -42,7 +47,7 @@ export function AdminSidebar({
         <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           WebSouza
           <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-            admin
+            {nav.badge}
           </Badge>
         </Link>
         <nav className="flex flex-1 flex-wrap items-center gap-1 overflow-x-auto text-sm">
@@ -83,7 +88,7 @@ export function AdminSidebar({
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" aria-label="Log out" onClick={handleSignOut}>
+          <Button variant="ghost" size="icon" aria-label={nav.logout} onClick={handleSignOut}>
             <LogOut className="size-4" />
           </Button>
         </div>

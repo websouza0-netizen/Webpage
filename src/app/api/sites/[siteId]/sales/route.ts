@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 /**
  * Called by the tracking snippet embedded in an e-commerce build's
@@ -11,6 +12,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
  */
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
+
+  const { allowed, retryAfterSeconds } = rateLimit(`sales:${siteId}`, { limit: 60, windowMs: 60_000 });
+  if (!allowed) return rateLimitResponse(retryAfterSeconds);
+
   const auth = request.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
 

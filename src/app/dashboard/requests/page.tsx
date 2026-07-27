@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { RequestForm } from "@/components/dashboard/request-form";
 import { getDashboardContext } from "@/lib/dashboard-data";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const STATUS_VARIANT = {
   new: "secondary",
@@ -14,6 +15,7 @@ const STATUS_VARIANT = {
 export default async function RequestsPage() {
   const supabase = await createClient();
   const { user, tokenBalance, readOnly } = await getDashboardContext();
+  const t = dictionaryFor(await getServerLocale()).dashboard.requests;
 
   const { data: requests } = await supabase
     .from("edit_requests")
@@ -24,19 +26,15 @@ export default async function RequestsPage() {
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Requests</h1>
-        <p className="text-sm text-muted-foreground">
-          Ask for a change to your site, and track past requests.
-        </p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
 
       <Reveal>
         <Card>
           <CardHeader>
-            <CardTitle>Request a change</CardTitle>
-            <CardDescription>
-              Every billing period includes 2 free requests. Extra requests are billed individually.
-            </CardDescription>
+            <CardTitle>{t.requestChange}</CardTitle>
+            <CardDescription>{t.freeIncluded}</CardDescription>
           </CardHeader>
           <CardContent>
             <RequestForm tokenBalance={tokenBalance} readOnly={readOnly} />
@@ -47,11 +45,11 @@ export default async function RequestsPage() {
       <Reveal delay={0.1}>
         <Card>
           <CardHeader>
-            <CardTitle>History</CardTitle>
+            <CardTitle>{t.history}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {!requests || requests.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No requests yet.</p>
+              <p className="text-sm text-muted-foreground">{t.noRequests}</p>
             ) : (
               <StaggerGroup className="flex flex-col gap-3">
                 {requests.map((r) => (

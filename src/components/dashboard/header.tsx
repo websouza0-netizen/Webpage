@@ -8,22 +8,25 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { en } from "@/lib/i18n/en";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/dashboard/brief", label: "Brief" },
-  { href: "/dashboard/billing", label: "Billing" },
-  { href: "/dashboard/sites", label: "Sites" },
-  { href: "/dashboard/requests", label: "Requests" },
-  { href: "/dashboard/account", label: "Account" },
-];
+type DashboardNav = (typeof en)["dashboardNav"];
 
-export function DashboardHeader({ showEarnings }: { showEarnings: boolean }) {
+export function DashboardHeader({ showEarnings, nav }: { showEarnings: boolean; nav: DashboardNav }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const NAV_ITEMS = [
+    { href: "/dashboard", label: nav.overview },
+    { href: "/dashboard/brief", label: nav.brief },
+    { href: "/dashboard/billing", label: nav.billing },
+    { href: "/dashboard/sites", label: nav.sites },
+    { href: "/dashboard/requests", label: nav.requests },
+    { href: "/dashboard/account", label: nav.account },
+  ];
+
   const items = showEarnings
-    ? [...NAV_ITEMS.slice(0, 3), { href: "/dashboard/earnings", label: "Earnings" }, ...NAV_ITEMS.slice(3)]
+    ? [...NAV_ITEMS.slice(0, 3), { href: "/dashboard/earnings", label: nav.earnings }, ...NAV_ITEMS.slice(3)]
     : NAV_ITEMS;
 
   async function handleSignOut() {
@@ -65,7 +68,7 @@ export function DashboardHeader({ showEarnings }: { showEarnings: boolean }) {
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" aria-label="Log out" onClick={handleSignOut}>
+          <Button variant="ghost" size="icon" aria-label={nav.logout} onClick={handleSignOut}>
             <LogOut className="size-4" />
           </Button>
         </div>

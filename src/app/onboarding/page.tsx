@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { WsEditorial } from "@/components/ws-editorial-wrapper";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
+import { Reveal } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
@@ -11,6 +13,8 @@ export default async function OnboardingPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login?next=/onboarding");
+
+  const t = dictionaryFor(await getServerLocale()).onboarding;
 
   const { data: subscription } = await supabase
     .from("subscriptions")
@@ -23,17 +27,16 @@ export default async function OnboardingPage() {
   return (
     <WsEditorial className="min-h-screen">
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <div className="mb-8 flex items-start justify-between gap-4">
+        <Reveal className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Tell us about your business</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Only the first two fields are required — everything else can be filled in later from
-              your dashboard.
-            </p>
+            <h1 className="text-2xl font-semibold">{t.title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t.subtitle}</p>
           </div>
           <ThemeToggle />
-        </div>
-        <OnboardingForm isEcommerce={subscription?.plan === "ecommerce"} accountEmail={user.email ?? ""} />
+        </Reveal>
+        <Reveal delay={0.05}>
+          <OnboardingForm isEcommerce={subscription?.plan === "ecommerce"} accountEmail={user.email ?? ""} />
+        </Reveal>
       </div>
     </WsEditorial>
   );

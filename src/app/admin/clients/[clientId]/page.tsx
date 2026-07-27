@@ -8,6 +8,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { PipelineEditor } from "@/components/admin/pipeline-editor";
 import type { DeliveryStep } from "@/components/dashboard/pipeline-status";
 import { Reveal } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -27,6 +28,7 @@ export default async function AdminClientDetailPage({
 }) {
   const { clientId } = await params;
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.clientDetail;
 
   const [
     { data: client },
@@ -74,7 +76,7 @@ export default async function AdminClientDetailPage({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Subscription</CardTitle>
+            <CardTitle>{t.subscription}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {subscription ? (
@@ -84,16 +86,16 @@ export default async function AdminClientDetailPage({
                 <Badge variant={STATUS_VARIANT[subscription.status] ?? "outline"}>{subscription.status}</Badge>
                 {subscription.current_period_end && (
                   <span className="text-xs text-muted-foreground">
-                    renews {new Date(subscription.current_period_end).toLocaleDateString()}
+                    {t.renews} {new Date(subscription.current_period_end).toLocaleDateString()}
                   </span>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No subscription.</p>
+              <p className="text-sm text-muted-foreground">{t.noSubscriptionText}</p>
             )}
             <Separator />
             <div>
-              <p className="text-sm font-medium">Add-ons</p>
+              <p className="text-sm font-medium">{t.addons}</p>
               {addons && addons.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-2">
                   {addons.map((a) => (
@@ -103,33 +105,33 @@ export default async function AdminClientDetailPage({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">None.</p>
+                <p className="text-sm text-muted-foreground">{t.none}</p>
               )}
             </div>
             <Separator />
             <p className="text-sm">
-              Edit token balance: <span className="font-medium">{tokens?.balance ?? 0}</span>
+              {t.editTokenBalance} <span className="font-medium">{tokens?.balance ?? 0}</span>
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Brief</CardTitle>
+            <CardTitle>{t.brief}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {brief ? (
               <>
                 <p className="text-sm">{brief.brand_name}</p>
                 <Badge variant={brief.reviewed_at ? "outline" : "secondary"} className="w-fit">
-                  {brief.reviewed_at ? "Reviewed" : "Awaiting review"}
+                  {brief.reviewed_at ? t.reviewed : t.awaitingReview}
                 </Badge>
                 <Button asChild variant="outline" size="sm" className="w-fit">
-                  <Link href={`/admin/briefs/${brief.id}`}>View brief</Link>
+                  <Link href={`/admin/briefs/${brief.id}`}>{t.viewBrief}</Link>
                 </Button>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">No brief yet.</p>
+              <p className="text-sm text-muted-foreground">{t.noBrief}</p>
             )}
           </CardContent>
         </Card>
@@ -137,23 +139,21 @@ export default async function AdminClientDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Delivery pipeline</CardTitle>
-          <CardDescription>Mark steps done to notify the client automatically.</CardDescription>
+          <CardTitle>{t.deliveryPipeline}</CardTitle>
+          <CardDescription>{t.deliveryPipelineNote}</CardDescription>
         </CardHeader>
         <CardContent>
           {steps && steps.length > 0 ? (
             <PipelineEditor clientId={clientId} steps={steps as DeliveryStep[]} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No pipeline steps yet — created once the client submits a brief.
-            </p>
+            <p className="text-sm text-muted-foreground">{t.noPipelineSteps}</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit requests</CardTitle>
+          <CardTitle>{t.editRequests}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {editRequests && editRequests.length > 0 ? (
@@ -170,7 +170,7 @@ export default async function AdminClientDetailPage({
               </div>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">No edit requests.</p>
+            <p className="text-sm text-muted-foreground">{t.noEditRequests}</p>
           )}
         </CardContent>
       </Card>

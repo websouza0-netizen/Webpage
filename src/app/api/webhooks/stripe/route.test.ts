@@ -145,9 +145,9 @@ describe("handler failures", () => {
     const originalFrom = fake.from.bind(fake);
     fake.from = (table: string) => {
       if (table === "subscriptions") {
-        return { update: () => ({ eq: async () => ({ data: null, error: { message: "boom" } }) }) } as ReturnType<
-          typeof originalFrom
-        >;
+        return {
+          update: () => ({ eq: async () => ({ data: null, error: { message: "boom" } }) }),
+        } as unknown as ReturnType<typeof originalFrom>;
       }
       return originalFrom(table);
     };

@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -14,6 +15,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 
 export default async function AdminClientsPage() {
   const serviceRole = createServiceRoleClient();
+  const t = dictionaryFor(await getServerLocale()).admin.clients;
 
   const [{ data: clients }, { data: subscriptions }, { data: briefs }, { data: steps }] = await Promise.all([
     serviceRole.from("clients").select("id, email, full_name, created_at").order("created_at", { ascending: false }),
@@ -46,17 +48,19 @@ export default async function AdminClientsPage() {
 
   function currentStepLabel(clientId: string) {
     const clientSteps = stepsByClient.get(clientId);
-    if (!clientSteps || clientSteps.length === 0) return "No pipeline yet";
+    if (!clientSteps || clientSteps.length === 0) return t.noPipelineYet;
     const pending = clientSteps.find((s) => s.status === "pending");
     const current = pending ?? clientSteps[clientSteps.length - 1];
-    return pending ? current.title_en : `${current.title_en} (done)`;
+    return pending ? current.title_en : `${current.title_en} (${t.done})`;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <Reveal>
-        <h1 className="text-2xl font-semibold">Clients</h1>
-        <p className="text-sm text-muted-foreground">{clients?.length ?? 0} total.</p>
+        <h1 className="text-2xl font-semibold">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">
+          {clients?.length ?? 0} {t.total}
+        </p>
       </Reveal>
       <StaggerGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(clients ?? []).map((client) => {
@@ -78,10 +82,10 @@ export default async function AdminClientsPage() {
                           <Badge variant={STATUS_VARIANT[sub.status] ?? "outline"}>{sub.status}</Badge>
                         </>
                       ) : (
-                        <Badge variant="outline">No subscription</Badge>
+                        <Badge variant="outline">{t.noSubscription}</Badge>
                       )}
                       <Badge variant={hasBrief ? "secondary" : "outline"}>
-                        {hasBrief ? "Brief submitted" : "No brief yet"}
+                        {hasBrief ? t.briefSubmitted : t.noBriefYet}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">{currentStepLabel(client.id)}</p>
