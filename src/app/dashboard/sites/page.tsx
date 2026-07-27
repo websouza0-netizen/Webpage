@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { VisitBars } from "@/components/dashboard/visit-bars";
 
 export default async function SitesPage() {
   const supabase = await createClient();
@@ -30,52 +32,49 @@ export default async function SitesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Sites</h1>
         <p className="text-sm text-muted-foreground">Your live site and recent traffic.</p>
-      </div>
+      </Reveal>
 
       {!sites || sites.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Your site hasn&apos;t been provisioned yet — it&apos;ll show up here once it&apos;s live.
-          </CardContent>
-        </Card>
+        <Reveal>
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              Your site hasn&apos;t been provisioned yet — it&apos;ll show up here once it&apos;s live.
+            </CardContent>
+          </Card>
+        </Reveal>
       ) : (
-        sites.map((site) => {
-          const visits = (dailyVisits ?? []).filter((v) => v.site_id === site.id);
-          const max = Math.max(1, ...visits.map((v) => v.count));
+        <StaggerGroup className="flex flex-col gap-6">
+          {sites.map((site) => {
+            const visits = (dailyVisits ?? []).filter((v) => v.site_id === site.id);
+            const max = Math.max(1, ...visits.map((v) => v.count));
 
-          return (
-            <Card key={site.id}>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>{site.domain}</CardTitle>
-                  <CardDescription>
-                    Added {new Date(site.created_at).toLocaleDateString()}
-                  </CardDescription>
-                </div>
-                <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
-              </CardHeader>
-              <CardContent>
-                {visits.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No visit data yet.</p>
-                ) : (
-                  <div className="flex h-24 items-end gap-1">
-                    {visits.map((v) => (
-                      <div
-                        key={v.day}
-                        className="flex-1 rounded-t bg-accent"
-                        style={{ height: `${Math.max(4, (v.count / max) * 100)}%` }}
-                        title={`${v.day}: ${v.count} visits`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })
+            return (
+              <StaggerItem key={site.id}>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>{site.domain}</CardTitle>
+                      <CardDescription>
+                        Added {new Date(site.created_at).toLocaleDateString()}
+                      </CardDescription>
+                    </div>
+                    <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    {visits.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No visit data yet.</p>
+                    ) : (
+                      <VisitBars visits={visits} max={max} />
+                    )}
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+            );
+          })}
+        </StaggerGroup>
       )}
     </div>
   );

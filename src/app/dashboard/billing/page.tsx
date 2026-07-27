@@ -7,6 +7,7 @@ import { CollapsibleSection } from "@/components/dashboard/collapsible-section";
 import { CheckoutButton } from "@/components/dashboard/checkout-button";
 import { getDashboardContext } from "@/lib/dashboard-data";
 import { PLANS, formatEUR, priceForInterval } from "@/lib/pricing";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 
 const ADDONS = [
   { type: "email_pro" as const, name: "Professional email", description: "A branded inbox for your domain." },
@@ -48,11 +49,12 @@ export default async function BillingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Billing</h1>
         <p className="text-sm text-muted-foreground">Your plan, add-ons, and invoices.</p>
-      </div>
+      </Reveal>
 
+      <Reveal>
       <Card>
         <CardHeader>
           <CardTitle>Current plan</CardTitle>

@@ -1,4 +1,7 @@
+"use client";
+
 import { Check } from "lucide-react";
+import { StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 
 export type DeliveryStep = {
@@ -26,24 +29,32 @@ export function PipelineStatus({ steps }: { steps: DeliveryStep[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <ol className="flex flex-wrap gap-2">
+      <StaggerGroup className="flex flex-wrap gap-2">
         {steps.map((step) => (
-          <li
-            key={step.id}
-            className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
-              step.status === "done"
-                ? "border-transparent bg-primary text-primary-foreground"
-                : step.id === current.id
-                  ? "border-accent text-accent"
-                  : "border-border text-muted-foreground",
-            )}
-          >
-            {step.status === "done" && <Check className="size-3" />}
-            {step.title_en}
-          </li>
+          <StaggerItem key={step.id}>
+            <div
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+                step.status === "done"
+                  ? "border-transparent bg-primary text-primary-foreground"
+                  : step.id === current.id
+                    ? "border-accent text-accent"
+                    : "border-border text-muted-foreground",
+              )}
+            >
+              {step.status === "done" ? (
+                <Check className="size-3" />
+              ) : step.id === current.id ? (
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
+                </span>
+              ) : null}
+              {step.title_en}
+            </div>
+          </StaggerItem>
         ))}
-      </ol>
+      </StaggerGroup>
       {current.status !== "done" && (current.note || current.link) && (
         <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
           <p className="font-medium">{current.title_en}</p>

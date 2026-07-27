@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MotionConfig } from "framer-motion";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemePreferenceDialog } from "@/components/theme-preference-dialog";
@@ -24,9 +25,11 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          {children}
-          <ThemePreferenceDialog />
-          <Toaster />
+          <MotionConfig reducedMotion="user">
+            {children}
+            <ThemePreferenceDialog />
+            <Toaster />
+          </MotionConfig>
         </ThemeProvider>
       </body>
     </html>

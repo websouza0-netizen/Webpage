@@ -1,15 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export function MarketingNav({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { t, locale, setLocale } = useI18n();
+  const { scrollY } = useScroll();
+  const borderOpacity = useTransform(scrollY, [0, 80], [0, 1]);
+  const shadowOpacity = useTransform(scrollY, [0, 80], [0, 0.08]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
+    <motion.header
+      style={{
+        borderBottomColor: useTransform(borderOpacity, (v) => `color-mix(in oklch, var(--border) ${v * 100}%, transparent)`),
+        boxShadow: useTransform(shadowOpacity, (v) => `0 8px 24px -12px rgb(0 0 0 / ${v})`),
+      }}
+      className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur"
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
@@ -61,6 +71,6 @@ export function MarketingNav({ isAuthenticated }: { isAuthenticated: boolean }) 
           )}
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

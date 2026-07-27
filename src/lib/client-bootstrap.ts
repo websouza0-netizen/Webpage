@@ -21,12 +21,13 @@ export async function ensureClientRecord(user: {
     (user.user_metadata?.name as string | undefined) ??
     null;
 
-  await supabase
+  const { data: insertedClients } = await supabase
     .from("clients")
     .upsert(
       { id: user.id, email: user.email ?? "", full_name: fullName },
       { onConflict: "id", ignoreDuplicates: true },
-    );
+    )
+    .select("id");
 
   await supabase
     .from("edit_tokens")
@@ -34,4 +35,6 @@ export async function ensureClientRecord(user: {
       { client_id: user.id, balance: FREE_EDIT_TOKENS },
       { onConflict: "client_id", ignoreDuplicates: true },
     );
+
+  return { isNewClient: (insertedClients?.length ?? 0) > 0 };
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -39,18 +40,28 @@ export function DashboardHeader({ showEarnings }: { showEarnings: boolean }) {
           WebSouza
         </Link>
         <nav className="flex flex-1 flex-wrap items-center gap-1 overflow-x-auto text-sm">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
-                pathname === item.href && "bg-secondary text-foreground",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {items.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                  active && "text-foreground",
+                )}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="dashboard-nav-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute inset-0 -z-10 rounded-md bg-secondary"
+                  />
+                )}
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />

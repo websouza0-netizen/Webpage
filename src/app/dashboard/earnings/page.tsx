@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { EarningsChart, type DailyRevenue } from "@/components/dashboard/earnings-chart";
 import { getDashboardContext } from "@/lib/dashboard-data";
 import { formatEUR } from "@/lib/pricing";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { CountUp } from "@/components/motion/count-up";
 
 export default async function EarningsPage() {
   const supabase = await createClient();
@@ -49,42 +51,56 @@ export default async function EarningsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Earnings</h1>
         <p className="text-sm text-muted-foreground">
           {site ? `Revenue reported by ${site.domain}, last 90 days.` : "No site provisioned yet."}
         </p>
-      </div>
+      </Reveal>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Revenue</CardDescription>
-            <CardTitle className="text-2xl">{formatEUR(totalCents / 100)}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Orders</CardDescription>
-            <CardTitle className="text-2xl">{orderCount}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Average order value</CardDescription>
-            <CardTitle className="text-2xl">{formatEUR(aovCents / 100)}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      <StaggerGroup className="grid gap-4 sm:grid-cols-3">
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Revenue</CardDescription>
+              <CardTitle className="text-2xl">
+                <CountUp value={totalCents / 100} format={(n) => formatEUR(n)} />
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </StaggerItem>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Orders</CardDescription>
+              <CardTitle className="text-2xl">
+                <CountUp value={orderCount} />
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </StaggerItem>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Average order value</CardDescription>
+              <CardTitle className="text-2xl">
+                <CountUp value={aovCents / 100} format={(n) => formatEUR(n)} />
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </StaggerItem>
+      </StaggerGroup>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue over time</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EarningsChart data={dailyRevenue} />
-        </CardContent>
-      </Card>
+      <Reveal delay={0.1}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue over time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EarningsChart data={dailyRevenue} />
+          </CardContent>
+        </Card>
+      </Reveal>
     </div>
   );
 }

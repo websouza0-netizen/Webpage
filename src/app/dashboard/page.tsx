@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { PipelineStatus, type DeliveryStep } from "@/components/dashboard/pipeline-status";
 import { getDashboardContext } from "@/lib/dashboard-data";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { CountUp } from "@/components/motion/count-up";
 
 export default async function DashboardOverviewPage() {
   const supabase = await createClient();
@@ -23,62 +25,72 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-semibold">Overview</h1>
         <p className="text-sm text-muted-foreground">
           Where your site stands right now.
         </p>
-      </div>
+      </Reveal>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Plan</CardDescription>
-            <CardTitle className="text-lg capitalize">
-              {subscription ? subscription.plan : "No active plan"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {subscription && (
-              <Badge variant={subscription.status === "active" ? "default" : "destructive"}>
-                {subscription.status}
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Site</CardDescription>
-            <CardTitle className="text-lg">{site?.domain ?? "Not provisioned yet"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {site && (
-              <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Edit requests remaining</CardDescription>
-            <CardTitle className="text-lg">{tokenBalance} free</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/dashboard/requests" className="text-sm text-accent underline underline-offset-4">
-              Submit a request
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <StaggerGroup className="grid gap-4 sm:grid-cols-3">
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Plan</CardDescription>
+              <CardTitle className="text-lg capitalize">
+                {subscription ? subscription.plan : "No active plan"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {subscription && (
+                <Badge variant={subscription.status === "active" ? "default" : "destructive"}>
+                  {subscription.status}
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        </StaggerItem>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Site</CardDescription>
+              <CardTitle className="text-lg">{site?.domain ?? "Not provisioned yet"}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {site && (
+                <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
+              )}
+            </CardContent>
+          </Card>
+        </StaggerItem>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Edit requests remaining</CardDescription>
+              <CardTitle className="text-lg">
+                <CountUp value={tokenBalance} format={(n) => `${Math.round(n)} free`} />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Link href="/dashboard/requests" className="text-sm text-accent underline underline-offset-4">
+                Submit a request
+              </Link>
+            </CardContent>
+          </Card>
+        </StaggerItem>
+      </StaggerGroup>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Delivery pipeline</CardTitle>
-          <CardDescription>Where your build is in the process.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PipelineStatus steps={(steps as DeliveryStep[] | null) ?? []} />
-        </CardContent>
-      </Card>
+      <Reveal delay={0.1}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Delivery pipeline</CardTitle>
+            <CardDescription>Where your build is in the process.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PipelineStatus steps={(steps as DeliveryStep[] | null) ?? []} />
+          </CardContent>
+        </Card>
+      </Reveal>
     </div>
   );
 }
