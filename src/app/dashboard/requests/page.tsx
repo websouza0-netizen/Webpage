@@ -1,0 +1,70 @@
+import { createClient } from "@/lib/supabase/server";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { RequestForm } from "@/components/dashboard/request-form";
+import { getDashboardContext } from "@/lib/dashboard-data";
+
+const STATUS_VARIANT = {
+  new: "secondary",
+  in_progress: "default",
+  done: "outline",
+} as const;
+
+export default async function RequestsPage() {
+  const supabase = await createClient();
+  const { user, tokenBalance, readOnly } = await getDashboardContext();
+
+  const { data: requests } = await supabase
+    .from("edit_requests")
+    .select("id, description, status, created_at")
+    .eq("client_id", user!.id)
+    .order("created_at", { ascending: false });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Requests</h1>
+        <p className="text-sm text-muted-foreground">
+          Ask for a change to your site, and track past requests.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Request a change</CardTitle>
+          <CardDescription>
+            Every billing period includes 2 free requests. Extra requests are billed individually.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RequestForm tokenBalance={tokenBalance} readOnly={readOnly} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>History</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {!requests || requests.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No requests yet.</p>
+          ) : (
+            requests.map((r) => (
+              <div key={r.id} className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0">
+                <div>
+                  <p className="text-sm">{r.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[r.status as keyof typeof STATUS_VARIANT]}>
+                  {r.status.replace("_", " ")}
+                </Badge>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
