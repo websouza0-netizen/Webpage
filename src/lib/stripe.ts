@@ -1,6 +1,22 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+let stripeClient: Stripe | null = null;
+
+function getStripeClient(): Stripe {
+  if (!stripeClient) {
+    const apiKey = process.env.STRIPE_SECRET_KEY;
+    if (!apiKey) throw new Error("Missing required env var: STRIPE_SECRET_KEY");
+    stripeClient = new Stripe(apiKey);
+  }
+  return stripeClient;
+}
+
+/** Lazily constructed so build-time page-data collection doesn't require STRIPE_SECRET_KEY. */
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return getStripeClient()[prop as keyof Stripe];
+  },
+});
 
 export type Plan = "static" | "ecommerce";
 export type BillingInterval = "monthly" | "annual";
