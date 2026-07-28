@@ -5,13 +5,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { submitFreeEditRequest } from "@/app/dashboard/requests/actions";
+import type { en } from "@/lib/i18n/en";
+
+type RequestsDict = (typeof en)["dashboard"]["requests"];
 
 export function RequestForm({
   tokenBalance,
   readOnly,
+  t,
 }: {
   tokenBalance: number;
   readOnly: boolean;
+  t: RequestsDict;
 }) {
   const [description, setDescription] = useState("");
   const [pending, startTransition] = useTransition();
@@ -21,7 +26,7 @@ export function RequestForm({
     startTransition(async () => {
       const result = await submitFreeEditRequest(description);
       if (result?.error === "no_tokens") {
-        toast.error("You're out of free requests — redirecting to pay for this one.");
+        toast.error(t.outOfTokensToast);
         void handlePaid();
         return;
       }
@@ -30,13 +35,13 @@ export function RequestForm({
         return;
       }
       setDescription("");
-      toast.success("Request submitted.");
+      toast.success(t.submittedToast);
     });
   }
 
   async function handlePaid() {
     if (!description.trim()) {
-      toast.error("Description is required.");
+      toast.error(t.descriptionRequiredToast);
       return;
     }
     setPaying(true);
@@ -48,13 +53,13 @@ export function RequestForm({
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
-        toast.error(data.error ?? "Something went wrong.");
+        toast.error(data.error ?? t.genericErrorToast);
         setPaying(false);
         return;
       }
       window.location.href = data.url;
     } catch {
-      toast.error("Something went wrong.");
+      toast.error(t.genericErrorToast);
       setPaying(false);
     }
   }
@@ -64,7 +69,7 @@ export function RequestForm({
   return (
     <div className="flex flex-col gap-3">
       <Textarea
-        placeholder="Describe the change you'd like…"
+        placeholder={t.placeholder}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         disabled={readOnly}
@@ -76,16 +81,12 @@ export function RequestForm({
           disabled={readOnly || pending || paying || !description.trim()}
         >
           {pending || paying
-            ? "Submitting…"
+            ? t.submitting
             : hasFreeTokens
-              ? `Submit (${tokenBalance} free left)`
-              : "Pay for this request"}
+              ? `${t.submitPrefix} (${tokenBalance} ${t.freeLeft})`
+              : t.payForRequest}
         </Button>
-        {readOnly && (
-          <span className="text-xs text-muted-foreground">
-            Change requests are paused while billing is unresolved.
-          </span>
-        )}
+        {readOnly && <span className="text-xs text-muted-foreground">{t.pausedNote}</span>}
       </div>
     </div>
   );

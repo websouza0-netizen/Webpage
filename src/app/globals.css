@@ -131,6 +131,15 @@ body {
   border-color: var(--border);
 }
 
+/* Smooth color-scheme swap on theme toggle. Lower specificity than any
+   Tailwind utility class, so components with their own transition-property
+   (e.g. buttons animating transform/box-shadow too) aren't affected. */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
+}
+
 @keyframes collapsible-down {
   from {
     height: 0;

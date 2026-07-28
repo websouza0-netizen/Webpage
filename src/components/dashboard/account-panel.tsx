@@ -16,8 +16,19 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import { deleteAccount } from "@/app/dashboard/account/actions";
+import type { en } from "@/lib/i18n/en";
 
-export function AccountPanel({ email, hasGoogle }: { email: string; hasGoogle: boolean }) {
+type AccountDict = (typeof en)["dashboard"]["account"];
+
+export function AccountPanel({
+  email,
+  hasGoogle,
+  t,
+}: {
+  email: string;
+  hasGoogle: boolean;
+  t: AccountDict;
+}) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -35,7 +46,7 @@ export function AccountPanel({ email, hasGoogle }: { email: string; hasGoogle: b
       return;
     }
     setPassword("");
-    toast.success("Password updated.");
+    toast.success(t.passwordUpdated);
   }
 
   async function handleDelete() {
@@ -54,20 +65,18 @@ export function AccountPanel({ email, hasGoogle }: { email: string; hasGoogle: b
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <Label>Email</Label>
+        <Label>{t.email}</Label>
         <p className="text-sm text-muted-foreground">{email}</p>
       </div>
 
       <div className="flex flex-col gap-1">
-        <Label>Google account</Label>
-        <p className="text-sm text-muted-foreground">
-          {hasGoogle ? "Connected" : "Not connected"}
-        </p>
+        <Label>{t.googleAccount}</Label>
+        <p className="text-sm text-muted-foreground">{hasGoogle ? t.connected : t.notConnected}</p>
       </div>
 
       {!hasGoogle && (
         <form className="flex flex-col gap-2" onSubmit={handlePasswordUpdate}>
-          <Label htmlFor="new-password">New password</Label>
+          <Label htmlFor="new-password">{t.newPassword}</Label>
           <div className="flex gap-2">
             <Input
               id="new-password"
@@ -78,7 +87,7 @@ export function AccountPanel({ email, hasGoogle }: { email: string; hasGoogle: b
               required
             />
             <Button type="submit" disabled={updating}>
-              {updating ? "Updating…" : "Update"}
+              {updating ? t.updating : t.update}
             </Button>
           </div>
         </form>
@@ -86,25 +95,22 @@ export function AccountPanel({ email, hasGoogle }: { email: string; hasGoogle: b
 
       <div className="border-t border-border pt-6">
         <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
-          Delete account
+          {t.deleteAccount}
         </Button>
       </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete your account?</DialogTitle>
-            <DialogDescription>
-              This cancels any active subscription and permanently deletes your account, site
-              records, brief, and request history. This can&apos;t be undone.
-            </DialogDescription>
+            <DialogTitle>{t.deleteDialogTitle}</DialogTitle>
+            <DialogDescription>{t.deleteDialogDescription}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Cancel
+              {t.cancel}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Deleting…" : "Delete my account"}
+              {deleting ? t.deleting : t.deleteMyAccount}
             </Button>
           </DialogFooter>
         </DialogContent>

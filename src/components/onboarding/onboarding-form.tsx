@@ -28,34 +28,9 @@ import {
   MAX_TOTAL_FILES,
 } from "@/lib/onboarding-schema";
 import { submitBrief } from "@/app/onboarding/actions";
+import type { en } from "@/lib/i18n/en";
 
-const PAGE_LABELS: Record<(typeof PAGE_OPTIONS)[number] | "shop", string> = {
-  home: "Home",
-  about: "About",
-  services: "Services",
-  menu_products: "Menu / Products",
-  contact: "Contact",
-  blog: "Blog",
-  booking: "Booking",
-  shop: "Shop",
-};
-
-const THEME_LABELS: Record<(typeof THEME_OPTIONS)[number], string> = {
-  minimal: "Minimal",
-  bold: "Bold & colorful",
-  elegant: "Elegant",
-  playful: "Playful",
-  corporate: "Corporate",
-  surprise_me: "Surprise me",
-};
-
-const PAYMENT_LABELS: Record<(typeof PAYMENT_METHOD_OPTIONS)[number], string> = {
-  card: "Card",
-  paypal: "PayPal",
-  apple_pay: "Apple Pay",
-  google_pay: "Google Pay",
-  bank_transfer: "Bank transfer",
-};
+type FormDict = (typeof en)["onboarding"]["form"];
 
 // Draft autosave lives in localStorage, not the DB: the onboarding gate
 // (src/proxy.ts) redirects away from /onboarding the moment any row exists
@@ -78,11 +53,13 @@ export function OnboardingForm({
   accountEmail,
   defaultValues,
   locked,
+  t,
 }: {
   isEcommerce: boolean;
   accountEmail: string;
   defaultValues?: Partial<BriefFormValues>;
   locked?: boolean;
+  t: FormDict;
 }) {
   const [pending, startTransition] = useTransition();
   const [logo, setLogo] = useState<File | null>(null);
@@ -142,11 +119,11 @@ export function OnboardingForm({
         ...draft,
         brandColors,
       });
-      toast.info("Restored your saved progress.");
+      toast.info(t.restoredDraftToast);
     } catch {
       window.localStorage.removeItem(DRAFT_STORAGE_KEY);
     }
-  }, [accountEmail, locked, reset]);
+  }, [accountEmail, locked, reset, t.restoredDraftToast]);
 
   // Debounced autosave of every text/selection field (not the file inputs,
   // which can't be serialized to localStorage — logo/photos are only ever
@@ -200,23 +177,21 @@ export function OnboardingForm({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit, () =>
-        toast.error("Some details need fixing before this can be submitted — check the earlier steps."),
-      )}
+      onSubmit={handleSubmit(onSubmit, () => toast.error(t.invalidToast))}
       className="flex flex-col gap-6"
     >
       {locked && (
         <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-          Your brief is locked now that development has started — use{" "}
+          {t.lockedNotePrefix}{" "}
           <a href="/dashboard/requests" className="text-accent underline underline-offset-4">
-            Requests
+            {t.lockedNoteLink}
           </a>{" "}
-          for further changes.
+          {t.lockedNoteSuffix}
         </p>
       )}
 
       {!locked && (
-        <div className="flex items-center gap-2" aria-label={`Step ${stepIndex + 1} of ${steps.length}`}>
+        <div className="flex items-center gap-2" aria-label={`${t.stepLabel} ${stepIndex + 1} ${t.of} ${steps.length}`}>
           {steps.map((step, i) => (
             <div
               key={step}
@@ -232,21 +207,21 @@ export function OnboardingForm({
       {(locked || currentStep === "basics") && (
       <Card>
         <CardHeader>
-          <CardTitle>The basics</CardTitle>
+          <CardTitle>{t.basics.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="brandName">Brand / business name *</Label>
+            <Label htmlFor="brandName">{t.basics.brandName}</Label>
             <Input id="brandName" {...register("brandName")} />
-            {errors.brandName && <p className="text-sm text-destructive">{errors.brandName.message}</p>}
+            {errors.brandName && <p className="text-sm text-destructive">{t.required}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="oneLiner">One-line description *</Label>
-            <Input id="oneLiner" placeholder="What does your business do?" {...register("oneLiner")} />
-            {errors.oneLiner && <p className="text-sm text-destructive">{errors.oneLiner.message}</p>}
+            <Label htmlFor="oneLiner">{t.basics.oneLiner}</Label>
+            <Input id="oneLiner" placeholder={t.basics.oneLinerPlaceholder} {...register("oneLiner")} />
+            {errors.oneLiner && <p className="text-sm text-destructive">{t.required}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="longDescription">Longer description</Label>
+            <Label htmlFor="longDescription">{t.basics.longDescription}</Label>
             <Textarea id="longDescription" rows={4} {...register("longDescription")} />
           </div>
         </CardContent>
@@ -256,26 +231,24 @@ export function OnboardingForm({
       {(locked || currentStep === "look") && (
       <Card>
         <CardHeader>
-          <CardTitle>Look & feel</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Optional — skip anything you&apos;re not sure about yet, we can talk it through later.
-          </p>
+          <CardTitle>{t.look.cardTitle}</CardTitle>
+          <p className="text-xs text-muted-foreground">{t.look.cardSubtitle}</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label>Preferred theme</Label>
+            <Label>{t.look.preferredTheme}</Label>
             <Controller
               control={control}
               name="themePreference"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a style" />
+                    <SelectValue placeholder={t.look.choosePlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
                     {THEME_OPTIONS.map((opt) => (
                       <SelectItem key={opt} value={opt}>
-                        {THEME_LABELS[opt]}
+                        {t.themeOptions[opt]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -284,11 +257,11 @@ export function OnboardingForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="themeNotes">Notes on style</Label>
+            <Label htmlFor="themeNotes">{t.look.themeNotes}</Label>
             <Input id="themeNotes" {...register("themeNotes")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Brand colors (up to 3)</Label>
+            <Label>{t.look.brandColors}</Label>
             <div className="flex gap-3">
               {[0, 1, 2].map((i) => (
                 <Controller
@@ -308,17 +281,17 @@ export function OnboardingForm({
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="logo">Logo</Label>
+            <Label htmlFor="logo">{t.look.logo}</Label>
             <Input
               id="logo"
               type="file"
               accept="image/png,image/jpeg,image/svg+xml,image/webp"
               onChange={(e) => setLogo(e.target.files?.[0] ?? null)}
             />
-            <p className="text-xs text-muted-foreground">PNG, JPG, SVG, or WebP — up to 5MB.</p>
+            <p className="text-xs text-muted-foreground">{t.look.logoNote}</p>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="photos">Photos</Label>
+            <Label htmlFor="photos">{t.look.photos}</Label>
             <Input
               id="photos"
               type="file"
@@ -327,14 +300,16 @@ export function OnboardingForm({
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? []).slice(0, MAX_TOTAL_FILES);
                 const oversized = files.some((f) => f.size > MAX_UPLOAD_BYTES);
-                if (oversized) toast.error("Some photos are over 5MB and will be skipped.");
+                if (oversized) toast.error(t.look.photosOversizedToast);
                 setPhotos(files.filter((f) => f.size <= MAX_UPLOAD_BYTES));
               }}
             />
-            <p className="text-xs text-muted-foreground">Up to {MAX_TOTAL_FILES} images, 5MB each.</p>
+            <p className="text-xs text-muted-foreground">
+              {t.look.photosNotePrefix} {MAX_TOTAL_FILES} {t.look.photosNoteSuffix}
+            </p>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Sites you like (up to 3)</Label>
+            <Label>{t.look.sitesYouLike}</Label>
             {[0, 1, 2].map((i) => (
               <Input key={i} placeholder="https://…" {...register(`referenceUrls.${i}` as const)} />
             ))}
@@ -346,11 +321,11 @@ export function OnboardingForm({
       {(locked || currentStep === "pages") && (
       <Card>
         <CardHeader>
-          <CardTitle>Pages & domain</CardTitle>
+          <CardTitle>{t.pages.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Pages needed</Label>
+            <Label>{t.pages.pagesNeeded}</Label>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {[...PAGE_OPTIONS, ...(isEcommerce ? (["shop"] as const) : [])].map((page) => (
                 <Controller
@@ -370,7 +345,7 @@ export function OnboardingForm({
                             field.onChange(Array.from(set));
                           }}
                         />
-                        {PAGE_LABELS[page]}
+                        {t.pageOptions[page]}
                       </label>
                     );
                   }}
@@ -379,20 +354,24 @@ export function OnboardingForm({
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Domain</Label>
+            <Label>{t.pages.domain}</Label>
             <Controller
               control={control}
               name="domainChoice"
               render={({ field }) => (
                 <RadioGroup value={field.value} onValueChange={field.onChange} className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-sm">
-                    <RadioGroupItem value="has_domain" /> I have one
+                    <RadioGroupItem value="has_domain" /> {t.pages.haveOne}
                   </label>
                   {domainChoice === "has_domain" && (
-                    <Input placeholder="yourdomain.com" {...register("domainValue")} className="ml-6 max-w-xs" />
+                    <Input
+                      placeholder={t.pages.domainPlaceholder}
+                      {...register("domainValue")}
+                      className="ml-6 max-w-xs"
+                    />
                   )}
                   <label className="flex items-center gap-2 text-sm">
-                    <RadioGroupItem value="need_domain" /> I need one
+                    <RadioGroupItem value="need_domain" /> {t.pages.needOne}
                   </label>
                 </RadioGroup>
               )}
@@ -406,24 +385,24 @@ export function OnboardingForm({
       <>
       <Card>
         <CardHeader>
-          <CardTitle>Social links</CardTitle>
-          <p className="text-xs text-muted-foreground">Optional.</p>
+          <CardTitle>{t.social.cardTitle}</CardTitle>
+          <p className="text-xs text-muted-foreground">{t.social.cardSubtitle}</p>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="socialInstagram">Instagram</Label>
+            <Label htmlFor="socialInstagram">{t.social.instagram}</Label>
             <Input id="socialInstagram" {...register("socialInstagram")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="socialFacebook">Facebook</Label>
+            <Label htmlFor="socialFacebook">{t.social.facebook}</Label>
             <Input id="socialFacebook" {...register("socialFacebook")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="socialTiktok">TikTok</Label>
+            <Label htmlFor="socialTiktok">{t.social.tiktok}</Label>
             <Input id="socialTiktok" {...register("socialTiktok")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="socialExistingSite">Existing site</Label>
+            <Label htmlFor="socialExistingSite">{t.social.existingSite}</Label>
             <Input id="socialExistingSite" {...register("socialExistingSite")} />
           </div>
         </CardContent>
@@ -431,21 +410,21 @@ export function OnboardingForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Build contact</CardTitle>
+          <CardTitle>{t.buildContact.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="contactName">Name</Label>
+            <Label htmlFor="contactName">{t.buildContact.name}</Label>
             <Input id="contactName" {...register("contactName")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="contactPhone">Phone</Label>
+            <Label htmlFor="contactPhone">{t.buildContact.phone}</Label>
             <Input id="contactPhone" {...register("contactPhone")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="contactEmail">Email *</Label>
+            <Label htmlFor="contactEmail">{t.buildContact.email}</Label>
             <Input id="contactEmail" type="email" {...register("contactEmail")} />
-            {errors.contactEmail && <p className="text-sm text-destructive">{errors.contactEmail.message}</p>}
+            {errors.contactEmail && <p className="text-sm text-destructive">{t.buildContact.invalidEmail}</p>}
           </div>
         </CardContent>
       </Card>
@@ -455,11 +434,11 @@ export function OnboardingForm({
       {isEcommerce && (locked || currentStep === "ecommerce") && (
         <Card>
           <CardHeader>
-            <CardTitle>E-commerce details</CardTitle>
+            <CardTitle>{t.ecommerce.cardTitle}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5 sm:w-48">
-              <Label htmlFor="ecommerceProductCount">Approx. product count</Label>
+              <Label htmlFor="ecommerceProductCount">{t.ecommerce.productCount}</Label>
               <Input
                 id="ecommerceProductCount"
                 type="number"
@@ -468,7 +447,7 @@ export function OnboardingForm({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Payment methods</Label>
+              <Label>{t.ecommerce.paymentMethods}</Label>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {PAYMENT_METHOD_OPTIONS.map((method) => (
                   <Controller
@@ -488,7 +467,7 @@ export function OnboardingForm({
                               field.onChange(Array.from(set));
                             }}
                           />
-                          {PAYMENT_LABELS[method]}
+                          {t.paymentOptions[method]}
                         </label>
                       );
                     }}
@@ -502,7 +481,7 @@ export function OnboardingForm({
               render={({ field }) => (
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  This site needs shipping
+                  {t.ecommerce.shippingNeeded}
                 </label>
               )}
             />
@@ -513,15 +492,15 @@ export function OnboardingForm({
       {locked ? null : (
         <div className="flex items-center justify-between">
           <Button type="button" variant="outline" onClick={goBack} disabled={stepIndex === 0}>
-            Back
+            {t.back}
           </Button>
           {isLastStep ? (
             <Button type="submit" size="lg" disabled={pending}>
-              {pending ? "Submitting…" : "Submit brief"}
+              {pending ? t.submitting : t.submitBrief}
             </Button>
           ) : (
             <Button type="button" size="lg" onClick={goNext}>
-              Continue
+              {t.continue}
             </Button>
           )}
         </div>

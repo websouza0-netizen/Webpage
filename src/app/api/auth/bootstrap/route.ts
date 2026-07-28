@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureClientRecord } from "@/lib/client-bootstrap";
 import { notifyAdmin, sendWelcomeEmail } from "@/lib/email";
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,7 +13,10 @@ export async function POST() {
     return NextResponse.json({ error: "not authenticated" }, { status: 401 });
   }
 
-  const { isNewClient } = await ensureClientRecord(user);
+  const body = await request.json().catch(() => ({}));
+  const requestedLocale = body?.locale === "pt" ? "pt" : body?.locale === "en" ? "en" : undefined;
+
+  const { isNewClient } = await ensureClientRecord(user, requestedLocale);
 
   if (isNewClient && user.email) {
     const name =

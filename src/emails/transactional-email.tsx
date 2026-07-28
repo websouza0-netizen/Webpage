@@ -14,11 +14,16 @@ export function TransactionalEmail({
   ctaHref?: string;
 }) {
   const copy = emailCopy[locale][template];
+  const detailParagraphs = detail?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <EmailLayout preview={copy.subject} heading={copy.heading} ctaLabel={copy.cta} ctaHref={ctaHref}>
       <Text>{copy.body}</Text>
-      {detail && <Text style={{ fontWeight: 600 }}>{detail}</Text>}
+      {detailParagraphs.map((paragraph, i) => (
+        <Text key={i} style={{ fontWeight: 600 }}>
+          {paragraph}
+        </Text>
+      ))}
     </EmailLayout>
   );
 }

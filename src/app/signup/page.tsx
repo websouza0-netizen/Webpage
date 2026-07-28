@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WsEditorial } from "@/components/ws-editorial-wrapper";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { Reveal } from "@/components/motion/reveal";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 
 function nextDestination(searchParams: URLSearchParams) {
   const plan = searchParams.get("plan");
@@ -24,9 +26,11 @@ function nextDestination(searchParams: URLSearchParams) {
 
 export default function SignupPage() {
   return (
-    <Suspense>
-      <SignupForm />
-    </Suspense>
+    <I18nProvider>
+      <Suspense>
+        <SignupForm />
+      </Suspense>
+    </I18nProvider>
   );
 }
 
@@ -34,6 +38,8 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = nextDestination(searchParams);
+  const { locale, setLocale, t } = useI18n();
+  const auth = t.auth.signup;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +51,11 @@ function SignupForm() {
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { locale } },
+    });
     if (error) {
       setLoading(false);
       setError(error.message);
@@ -59,7 +69,11 @@ function SignupForm() {
       setConfirmationSent(true);
       return;
     }
-    await fetch("/api/auth/bootstrap", { method: "POST" });
+    await fetch("/api/auth/bootstrap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale }),
+    });
     setLoading(false);
     router.push(next);
     router.refresh();
@@ -77,34 +91,35 @@ function SignupForm() {
 
   return (
     <WsEditorial className="flex min-h-screen items-center justify-center px-4 py-16">
-      <div className="absolute right-4 top-4">
+      <div className="absolute right-4 top-4 flex items-center gap-1">
+        <LanguageToggle locale={locale} onToggle={() => setLocale(locale === "en" ? "pt" : "en")} />
         <ThemeToggle />
       </div>
       <Reveal className="w-full max-w-sm">
       <Card>
         <CardHeader>
-          <CardTitle>Get started</CardTitle>
-          <CardDescription>Create your WebSouza account.</CardDescription>
+          <CardTitle>{auth.title}</CardTitle>
+          <CardDescription>{auth.subtitle}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {confirmationSent ? (
             <p className="text-center text-sm text-muted-foreground">
-              We sent a confirmation link to <span className="text-foreground">{email}</span>.
-              Follow it to finish creating your account, then log in.
+              {auth.confirmationSentPrefix} <span className="text-foreground">{email}</span>.{" "}
+              {auth.confirmationSentSuffix}
             </p>
           ) : (
             <>
               <Button type="button" variant="outline" onClick={handleGoogle}>
-                Continue with Google
+                {auth.continueWithGoogle}
               </Button>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
-                or
+                {auth.or}
                 <div className="h-px flex-1 bg-border" />
               </div>
               <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{auth.email}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -114,7 +129,7 @@ function SignupForm() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{auth.password}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -126,15 +141,15 @@ function SignupForm() {
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Creating account…" : "Create account"}
+                  {loading ? auth.submitting : auth.submit}
                 </Button>
               </form>
             </>
           )}
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {auth.alreadyHaveAccount}{" "}
             <Link href="/login" className="text-foreground underline underline-offset-4">
-              Log in
+              {auth.logIn}
             </Link>
           </p>
         </CardContent>

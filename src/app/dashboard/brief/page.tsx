@@ -12,7 +12,8 @@ export default async function BriefPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const t = dictionaryFor(await getServerLocale()).dashboard.brief;
+  const dict = dictionaryFor(await getServerLocale());
+  const t = dict.dashboard.brief;
 
   const [{ data: brief }, { data: subscription }] = await Promise.all([
     supabase.from("onboarding_briefs").select("*").eq("client_id", user!.id).maybeSingle(),
@@ -82,6 +83,7 @@ export default async function BriefPage() {
           accountEmail={user!.email ?? ""}
           defaultValues={defaultValues}
           locked={!!brief.locked_at}
+          t={dict.onboarding.form}
         />
       </Reveal>
     </div>

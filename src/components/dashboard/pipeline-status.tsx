@@ -9,21 +9,30 @@ export type DeliveryStep = {
   step_key: string;
   step_order: number;
   title_en: string;
+  title_pt: string;
   status: "pending" | "done";
   note: string | null;
   link: string | null;
   completed_at: string | null;
+  estimated_date: string | null;
 };
 
-export function PipelineStatus({ steps }: { steps: DeliveryStep[] }) {
+export function PipelineStatus({
+  steps,
+  locale,
+  emptyText,
+  expectedLabel,
+}: {
+  steps: DeliveryStep[];
+  locale: "en" | "pt";
+  emptyText: string;
+  expectedLabel: string;
+}) {
   if (steps.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Your delivery pipeline will appear here once your brief is submitted.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">{emptyText}</p>;
   }
 
+  const title = (step: DeliveryStep) => (locale === "pt" ? step.title_pt : step.title_en);
   const currentIndex = steps.findIndex((s) => s.status === "pending");
   const current = currentIndex === -1 ? steps[steps.length - 1] : steps[currentIndex];
 
@@ -50,14 +59,23 @@ export function PipelineStatus({ steps }: { steps: DeliveryStep[] }) {
                   <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
                 </span>
               ) : null}
-              {step.title_en}
+              {title(step)}
             </div>
           </StaggerItem>
         ))}
       </StaggerGroup>
-      {current.status !== "done" && (current.note || current.link) && (
+      {current.status !== "done" && (current.note || current.link || current.estimated_date) && (
         <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
-          <p className="font-medium">{current.title_en}</p>
+          <p className="font-medium">{title(current)}</p>
+          {current.estimated_date && (
+            <p className="mt-1 text-accent">
+              {expectedLabel}{" "}
+              {new Date(`${current.estimated_date}T00:00:00`).toLocaleDateString(
+                locale === "pt" ? "pt-BR" : "en-IE",
+                { day: "numeric", month: "long" },
+              )}
+            </p>
+          )}
           {current.note && <p className="mt-1 text-muted-foreground">{current.note}</p>}
           {current.link && (
             <a

@@ -10,11 +10,14 @@ const FREE_EDIT_TOKENS = 2;
  * bootstrap itself through RLS. Safe to call repeatedly: `ON CONFLICT DO
  * NOTHING` means an existing token balance is never reset.
  */
-export async function ensureClientRecord(user: {
-  id: string;
-  email?: string | null;
-  user_metadata?: Record<string, unknown>;
-}) {
+export async function ensureClientRecord(
+  user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+  },
+  locale?: "en" | "pt",
+) {
   const supabase = createServiceRoleClient();
   const fullName =
     (user.user_metadata?.full_name as string | undefined) ??
@@ -24,7 +27,7 @@ export async function ensureClientRecord(user: {
   const { data: insertedClients } = await supabase
     .from("clients")
     .upsert(
-      { id: user.id, email: user.email ?? "", full_name: fullName },
+      { id: user.id, email: user.email ?? "", full_name: fullName, ...(locale ? { locale } : {}) },
       { onConflict: "id", ignoreDuplicates: true },
     )
     .select("id");

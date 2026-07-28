@@ -1,20 +1,41 @@
 "use client";
 
+import { useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { createClient } from "@/lib/supabase/client";
+import { setAccountLocale } from "@/app/dashboard/actions";
 import { cn } from "@/lib/utils";
 import type { en } from "@/lib/i18n/en";
+import type { Locale } from "@/lib/i18n";
 
 type DashboardNav = (typeof en)["dashboardNav"];
 
-export function DashboardHeader({ showEarnings, nav }: { showEarnings: boolean; nav: DashboardNav }) {
+export function DashboardHeader({
+  showEarnings,
+  nav,
+  locale,
+}: {
+  showEarnings: boolean;
+  nav: DashboardNav;
+  locale: Locale;
+}) {
   const pathname = usePathname();
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function handleToggleLocale() {
+    const next: Locale = locale === "en" ? "pt" : "en";
+    startTransition(async () => {
+      await setAccountLocale(next);
+      router.refresh();
+    });
+  }
 
   const NAV_ITEMS = [
     { href: "/dashboard", label: nav.overview },
@@ -67,6 +88,7 @@ export function DashboardHeader({ showEarnings, nav }: { showEarnings: boolean; 
           })}
         </nav>
         <div className="flex items-center gap-1">
+          <LanguageToggle locale={locale} onToggle={handleToggleLocale} disabled={pending} />
           <ThemeToggle />
           <Button variant="ghost" size="icon" aria-label={nav.logout} onClick={handleSignOut}>
             <LogOut className="size-4" />

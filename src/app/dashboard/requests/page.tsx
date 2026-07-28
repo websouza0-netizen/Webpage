@@ -37,7 +37,7 @@ export default async function RequestsPage() {
             <CardDescription>{t.freeIncluded}</CardDescription>
           </CardHeader>
           <CardContent>
-            <RequestForm tokenBalance={tokenBalance} readOnly={readOnly} />
+            <RequestForm tokenBalance={tokenBalance} readOnly={readOnly} t={t} />
           </CardContent>
         </Card>
       </Reveal>

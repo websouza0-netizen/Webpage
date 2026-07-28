@@ -11,12 +11,13 @@ import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 export default async function DashboardOverviewPage() {
   const supabase = await createClient();
   const { subscription, tokenBalance } = await getDashboardContext();
-  const t = dictionaryFor(await getServerLocale()).dashboard.overview;
+  const locale = await getServerLocale();
+  const t = dictionaryFor(locale).dashboard.overview;
 
   const [{ data: steps }, { data: site }] = await Promise.all([
     supabase
       .from("delivery_steps")
-      .select("id, step_key, step_order, title_en, status, note, link, completed_at")
+      .select("id, step_key, step_order, title_en, title_pt, status, note, link, completed_at, estimated_date")
       .order("step_order", { ascending: true }),
     supabase
       .from("sites")
@@ -88,7 +89,12 @@ export default async function DashboardOverviewPage() {
             <CardDescription>{t.deliveryPipelineSubtitle}</CardDescription>
           </CardHeader>
           <CardContent>
-            <PipelineStatus steps={(steps as DeliveryStep[] | null) ?? []} />
+            <PipelineStatus
+              steps={(steps as DeliveryStep[] | null) ?? []}
+              locale={locale}
+              emptyText={t.noPipelineYet}
+              expectedLabel={t.expectedAround}
+            />
           </CardContent>
         </Card>
       </Reveal>

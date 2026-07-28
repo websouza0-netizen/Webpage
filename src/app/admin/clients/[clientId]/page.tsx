@@ -57,7 +57,7 @@ export default async function AdminClientDetailPage({
       .order("created_at", { ascending: false }),
     serviceRole
       .from("delivery_steps")
-      .select("id, step_key, step_order, title_en, status, note, link, completed_at")
+      .select("id, step_key, step_order, title_en, title_pt, status, note, link, completed_at, estimated_date")
       .eq("client_id", clientId)
       .order("step_order", { ascending: true }),
   ]);

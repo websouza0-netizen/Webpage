@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { Button } from "@/components/ui/button";
 
 export function MarketingNav({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -47,16 +48,7 @@ export function MarketingNav({ isAuthenticated }: { isAuthenticated: boolean }) 
         </nav>
 
         <div className="flex items-center gap-1.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs font-semibold"
-            onClick={() => setLocale(locale === "en" ? "pt" : "en")}
-            aria-label="Toggle language"
-          >
-            {locale === "en" ? "PT" : "EN"}
-          </Button>
+          <LanguageToggle locale={locale} onToggle={() => setLocale(locale === "en" ? "pt" : "en")} />
           <ThemeToggle />
           {isAuthenticated ? (
             <Button asChild size="sm">

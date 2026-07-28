@@ -25,7 +25,7 @@ export default async function AccountPage() {
             <CardTitle>{t.details}</CardTitle>
           </CardHeader>
           <CardContent>
-            <AccountPanel email={user?.email ?? ""} hasGoogle={hasGoogle} />
+            <AccountPanel email={user?.email ?? ""} hasGoogle={hasGoogle} t={t} />
           </CardContent>
         </Card>
       </Reveal>

@@ -38,7 +38,11 @@ export default async function OnboardingPage() {
           <ThemeToggle />
         </Reveal>
         <Reveal delay={0.05}>
-          <OnboardingForm isEcommerce={subscription?.plan === "ecommerce"} accountEmail={user.email ?? ""} />
+          <OnboardingForm
+            isEcommerce={subscription?.plan === "ecommerce"}
+            accountEmail={user.email ?? ""}
+            t={t.form}
+          />
         </Reveal>
       </div>
     </WsEditorial>
