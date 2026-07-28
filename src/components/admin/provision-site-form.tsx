@@ -19,6 +19,19 @@ type ProvisionedSite = {
   ingest_token: string;
 };
 
+function trackingSnippetFor(site: ProvisionedSite, origin: string) {
+  return `<script>
+(function () {
+  fetch("${origin}/api/sites/${site.id}/visits", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer ${site.ingest_token}" },
+    body: JSON.stringify({ path: location.pathname, referrer: document.referrer || null }),
+    keepalive: true,
+  }).catch(function () {});
+})();
+</script>`;
+}
+
 export function ProvisionSiteForm({ clients }: { clients: Client[] }) {
   const [clientId, setClientId] = useState("");
   const [domain, setDomain] = useState("");
@@ -122,6 +135,14 @@ export function ProvisionSiteForm({ clients }: { clients: Client[] }) {
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Ingest token</p>
               <p className="break-all font-mono text-xs">{result.ingest_token}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Tracking snippet — paste before {"</body>"}
+              </p>
+              <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-3 font-mono text-xs">
+                {trackingSnippetFor(result, typeof window !== "undefined" ? window.location.origin : "")}
+              </pre>
             </div>
           </CardContent>
         </Card>
