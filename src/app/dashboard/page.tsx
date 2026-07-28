@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PipelineStatus, type DeliveryStep } from "@/components/dashboard/pipeline-status";
+import { Card, CardContent } from "@/components/ui/card";
+import { SiteStatusHero, type DeliveryStep } from "@/components/dashboard/pipeline-status";
 import { getDashboardContext } from "@/lib/dashboard-data";
-import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
+import { Reveal } from "@/components/motion/reveal";
 import { CountUp } from "@/components/motion/count-up";
 import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
@@ -34,67 +33,45 @@ export default async function DashboardOverviewPage() {
         <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </Reveal>
 
-      <StaggerGroup className="grid gap-4 sm:grid-cols-3">
-        <StaggerItem>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t.plan}</CardDescription>
-              <CardTitle className="text-lg capitalize">
-                {subscription ? subscription.plan : t.noActivePlan}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {subscription && (
-                <Badge variant={subscription.status === "active" ? "default" : "destructive"}>
-                  {subscription.status}
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
-        </StaggerItem>
-        <StaggerItem>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t.site}</CardDescription>
-              <CardTitle className="text-lg">{site?.domain ?? t.notProvisioned}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {site && (
-                <Badge variant={site.status === "active" ? "default" : "secondary"}>{site.status}</Badge>
-              )}
-            </CardContent>
-          </Card>
-        </StaggerItem>
-        <StaggerItem>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t.editRequestsRemaining}</CardDescription>
-              <CardTitle className="text-lg">
-                <CountUp value={tokenBalance} suffix={` ${t.free}`} />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Link href="/dashboard/requests" className="text-sm text-accent underline underline-offset-4">
-                {t.submitRequest}
-              </Link>
-            </CardContent>
-          </Card>
-        </StaggerItem>
-      </StaggerGroup>
+      <Reveal delay={0.05}>
+        <Card>
+          <CardContent>
+            <SiteStatusHero
+              steps={(steps as DeliveryStep[] | null) ?? []}
+              site={site}
+              locale={locale}
+              t={{
+                notStartedTitle: t.notStartedTitle,
+                notStartedSubtitle: t.notStartedSubtitle,
+                startBrief: t.startBrief,
+                inProgressSubtitle: t.inProgressSubtitle,
+                liveSubtitle: t.liveSubtitle,
+                visitSite: t.visitSite,
+                expectedAround: t.expectedAround,
+              }}
+            />
+          </CardContent>
+        </Card>
+      </Reveal>
 
       <Reveal delay={0.1}>
         <Card>
-          <CardHeader>
-            <CardTitle>{t.deliveryPipeline}</CardTitle>
-            <CardDescription>{t.deliveryPipelineSubtitle}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PipelineStatus
-              steps={(steps as DeliveryStep[] | null) ?? []}
-              locale={locale}
-              emptyText={t.noPipelineYet}
-              expectedLabel={t.expectedAround}
-            />
+          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <p className="text-xs text-muted-foreground">{t.plan}</p>
+                <p className="font-medium capitalize">{subscription ? subscription.plan : t.noActivePlan}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{t.editRequestsRemaining}</p>
+                <p className="font-medium">
+                  <CountUp value={tokenBalance} suffix={` ${t.free}`} />
+                </p>
+              </div>
+            </div>
+            <Link href="/dashboard/requests" className="text-sm text-accent underline underline-offset-4">
+              {t.submitRequest}
+            </Link>
           </CardContent>
         </Card>
       </Reveal>
