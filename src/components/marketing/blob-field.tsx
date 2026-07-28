@@ -20,6 +20,11 @@ export function BlobField() {
         transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-0 left-1/3 size-72 rounded-full bg-accent/10 blur-3xl"
       />
+      <motion.div
+        animate={{ x: [0, -14, 0], y: [0, -10, 0], scale: [1, 1.08, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-1/4 top-1/2 size-64 rounded-full bg-primary/5 blur-3xl"
+      />
     </div>
   );
 }

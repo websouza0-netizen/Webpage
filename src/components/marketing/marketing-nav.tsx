@@ -23,24 +23,27 @@ export function MarketingNav({ isAuthenticated }: { isAuthenticated: boolean }) 
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className="font-[family-name:var(--font-quote)] text-2xl italic text-foreground"
+          className="font-[family-name:var(--font-quote)] text-2xl italic text-foreground transition-transform duration-200 hover:scale-105"
         >
           WebSouza
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#features" className="transition-colors hover:text-foreground">
-            {t.nav.features}
-          </a>
-          <a href="#pricing" className="transition-colors hover:text-foreground">
-            {t.nav.pricing}
-          </a>
-          <a href="#projects" className="transition-colors hover:text-foreground">
-            {t.nav.projects}
-          </a>
-          <a href="#faq" className="transition-colors hover:text-foreground">
-            {t.nav.faq}
-          </a>
+          {[
+            { href: "#features", label: t.nav.features },
+            { href: "#pricing", label: t.nav.pricing },
+            { href: "#projects", label: t.nav.projects },
+            { href: "#faq", label: t.nav.faq },
+          ].map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="group relative py-1 transition-colors hover:text-foreground"
+            >
+              {link.label}
+              <span className="absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-accent transition-transform duration-200 group-hover:scale-x-100" />
+            </a>
+          ))}
         </nav>
 
         <div className="flex items-center gap-1.5">

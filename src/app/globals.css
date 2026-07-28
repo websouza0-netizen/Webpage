@@ -158,6 +158,75 @@ body {
   animation: collapsible-up 0.2s ease-in;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    color-mix(in oklch, var(--accent) 40%, var(--foreground)) 25%,
+    var(--accent) 50%,
+    color-mix(in oklch, var(--accent) 40%, var(--foreground)) 75%,
+    var(--accent) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+
+@keyframes btn-shine {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklch, white 45%, transparent) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%) skewX(-20deg);
+  pointer-events: none;
+}
+
+.btn-shine:hover::after {
+  animation: btn-shine 0.9s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

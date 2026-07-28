@@ -21,26 +21,28 @@ export function ProjectsGrid() {
         {t.projects.items.map((p) => {
           const demo = getDemoProject(p.id);
           return (
-            <motion.div key={p.id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+            <motion.div key={p.id} className="group" whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
               <Link href={`/demo/${p.id}`}>
                 <Card className="h-full gap-0 overflow-hidden py-0">
-                  <div
-                    className="h-28 w-full"
-                    style={
-                      demo
-                        ? {
-                            background: `linear-gradient(135deg, ${demo.colors.background}, ${demo.colors.accent})`,
-                          }
-                        : undefined
-                    }
-                  />
+                  <div className="h-28 w-full overflow-hidden">
+                    <div
+                      className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-110"
+                      style={
+                        demo
+                          ? {
+                              background: `linear-gradient(135deg, ${demo.colors.background}, ${demo.colors.accent})`,
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
                   <CardHeader className="gap-1.5 py-6">
                     <Badge variant="outline" className="w-fit">
                       {p.category}
                     </Badge>
                     <CardTitle className="mt-1 flex items-center gap-1.5">
                       {p.name}
-                      <ArrowUpRight className="size-4 text-muted-foreground" />
+                      <ArrowUpRight className="size-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </CardTitle>
                     <CardDescription>{p.description}</CardDescription>
                   </CardHeader>

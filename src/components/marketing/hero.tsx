@@ -48,7 +48,7 @@ export function Hero() {
 
         <motion.h1 variants={item} className="text-4xl font-semibold tracking-tight sm:text-6xl">
           {t.hero.headingLead}{" "}
-          <span className="font-[family-name:var(--font-quote)] italic text-accent">
+          <span className="text-shimmer font-[family-name:var(--font-quote)] italic">
             {t.hero.headingAccent}
           </span>
           {t.hero.headingTail}
@@ -79,6 +79,17 @@ export function Hero() {
             </div>
           ))}
         </motion.dl>
+      </motion.div>
+
+      <motion.div
+        aria-hidden
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="mx-auto mt-14 flex w-full max-w-3xl justify-center text-muted-foreground/60"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 5v14M19 12l-7 7-7-7" />
+        </svg>
       </motion.div>
     </section>
   );

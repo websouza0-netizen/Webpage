@@ -20,10 +20,10 @@ export function FeaturesGrid() {
         {t.features.items.map((feature, i) => {
           const Icon = icons[i % icons.length];
           return (
-            <motion.div key={feature.title} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+            <motion.div key={feature.title} className="group" whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
               <Card className="h-full">
                 <CardHeader>
-                  <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-accent/15 text-accent">
+                  <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-accent/15 text-accent transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                     <Icon className="size-5" />
                   </div>
                   <CardTitle className="text-base">{feature.title}</CardTitle>
