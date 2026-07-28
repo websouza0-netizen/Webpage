@@ -13,17 +13,18 @@ export default async function DashboardOverviewPage() {
   const { subscription, tokenBalance } = await getDashboardContext();
   const t = dictionaryFor(await getServerLocale()).dashboard.overview;
 
-  const { data: steps } = await supabase
-    .from("delivery_steps")
-    .select("id, step_key, step_order, title_en, status, note, link, completed_at")
-    .order("step_order", { ascending: true });
-
-  const { data: site } = await supabase
-    .from("sites")
-    .select("domain, status")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const [{ data: steps }, { data: site }] = await Promise.all([
+    supabase
+      .from("delivery_steps")
+      .select("id, step_key, step_order, title_en, status, note, link, completed_at")
+      .order("step_order", { ascending: true }),
+    supabase
+      .from("sites")
+      .select("domain, status")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">

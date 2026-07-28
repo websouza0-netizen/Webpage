@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
 import { Reveal } from "@/components/motion/reveal";
 import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
+import { SetHtmlLang } from "@/components/set-html-lang";
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
@@ -14,7 +15,8 @@ export default async function OnboardingPage() {
 
   if (!user) redirect("/login?next=/onboarding");
 
-  const t = dictionaryFor(await getServerLocale()).onboarding;
+  const locale = await getServerLocale();
+  const t = dictionaryFor(locale).onboarding;
 
   const { data: subscription } = await supabase
     .from("subscriptions")
@@ -26,6 +28,7 @@ export default async function OnboardingPage() {
 
   return (
     <WsEditorial className="min-h-screen">
+      <SetHtmlLang locale={locale} />
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <Reveal className="mb-8 flex items-start justify-between gap-4">
           <div>

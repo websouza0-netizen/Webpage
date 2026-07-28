@@ -11,6 +11,32 @@ import { Testimonials } from "@/components/marketing/testimonials";
 import { FAQ } from "@/components/marketing/faq";
 import { ContactCta } from "@/components/marketing/contact-cta";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
+import { SITE_URL } from "@/lib/site-url";
+import { PLANS } from "@/lib/pricing";
+
+function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "WebSouza",
+    url: SITE_URL,
+    description:
+      "WebSouza builds and runs your business website end to end: design, delivery, billing, and support in one subscription.",
+    makesOffer: PLANS.map((plan) => ({
+      "@type": "Offer",
+      name: plan.name,
+      description: plan.tagline,
+      price: plan.monthlyPrice,
+      priceCurrency: "EUR",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: plan.monthlyPrice,
+        priceCurrency: "EUR",
+        billingDuration: "P1M",
+      },
+    })),
+  };
+}
 
 export default async function Home() {
   const supabase = await createClient();
@@ -20,6 +46,11 @@ export default async function Home() {
 
   return (
     <WsEditorial className="min-h-screen">
+      <script
+        type="application/ld+json"
+        // Static, config-driven data only (no user input) — safe to inline.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+      />
       <I18nProvider>
         <MarketingNav isAuthenticated={!!user} />
         <Hero />

@@ -46,6 +46,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Keep the <html lang> attribute in sync so screen readers and browser
+  // translation tools reflect the actual rendered language, not the
+  // server's always-"en" default.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
   function setLocale(next: Locale) {
     setLocaleState(next);
     window.localStorage.setItem(STORAGE_KEY, next);

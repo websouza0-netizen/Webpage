@@ -20,18 +20,12 @@ export default async function BillingPage() {
   const { user, subscription, tokenBalance, readOnly } = await getDashboardContext();
   const t = dictionaryFor(await getServerLocale()).dashboard.billing;
 
-  const { data: addons } = await supabase
-    .from("addons")
-    .select("type, status")
-    .eq("client_id", user!.id);
+  const [{ data: addons }, { data: client }] = await Promise.all([
+    supabase.from("addons").select("type, status").eq("client_id", user!.id),
+    supabase.from("clients").select("stripe_customer_id").eq("id", user!.id).single(),
+  ]);
 
   const ownedAddonTypes = new Set((addons ?? []).map((a) => a.type));
-
-  const { data: client } = await supabase
-    .from("clients")
-    .select("stripe_customer_id")
-    .eq("id", user!.id)
-    .single();
 
   let invoices: { id: string; date: string; amount: string; status: string }[] = [];
   if (client?.stripe_customer_id) {

@@ -30,7 +30,11 @@ function deviceTypeOf(userAgent: string | null): string | null {
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
 
-  const { allowed, retryAfterSeconds } = rateLimit(`visits:${siteId}`, { limit: 120, windowMs: 60_000 });
+  // Unlike the sales-ingest route (rare checkout events), this fires on
+  // every real pageview across a site's entire visitor base — a limit
+  // sized for abuse protection on a low-frequency event would silently
+  // drop legitimate traffic for any site with real visitors.
+  const { allowed, retryAfterSeconds } = rateLimit(`visits:${siteId}`, { limit: 600, windowMs: 60_000 });
   if (!allowed) return rateLimitResponse(retryAfterSeconds);
 
   const auth = request.headers.get("authorization");

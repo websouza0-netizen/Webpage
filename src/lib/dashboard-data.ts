@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type DashboardSubscription = {
@@ -13,8 +14,12 @@ export type DashboardSubscription = {
  * needs (subscription for the read-only banner + plan-gated nav items,
  * token balance for the billing/requests pages). Avoids each page
  * re-querying the same handful of small tables.
+ *
+ * Wrapped in React's cache() because the layout AND the page both call
+ * this on every navigation — without dedup that's the same auth.getUser()
+ * + subscription + edit_tokens round trip running twice per request.
  */
-export async function getDashboardContext() {
+export const getDashboardContext = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,4 +48,4 @@ export async function getDashboardContext() {
     tokenBalance: tokens?.balance ?? 0,
     readOnly,
   };
-}
+});
