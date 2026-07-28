@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useForm, Controller, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,22 @@ const PAYMENT_LABELS: Record<(typeof PAYMENT_METHOD_OPTIONS)[number], string> = 
   bank_transfer: "Bank transfer",
 };
 
+// Draft autosave lives in localStorage, not the DB: the onboarding gate
+// (src/proxy.ts) redirects away from /onboarding the moment any row exists
+// in onboarding_briefs, so a server-persisted draft would lock a user out
+// of finishing their own in-progress brief.
+const DRAFT_STORAGE_KEY = "ws-onboarding-draft";
+
+type StepId = "basics" | "look" | "pages" | "social" | "ecommerce";
+
+const REQUIRED_FIELDS_BY_STEP: Record<StepId, Path<BriefFormValues>[]> = {
+  basics: ["brandName", "oneLiner"],
+  look: [],
+  pages: [],
+  social: ["contactEmail"],
+  ecommerce: [],
+};
+
 export function OnboardingForm({
   isEcommerce,
   accountEmail,
@@ -71,12 +87,21 @@ export function OnboardingForm({
   const [pending, startTransition] = useTransition();
   const [logo, setLogo] = useState<File | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [stepIndex, setStepIndex] = useState(0);
+  const restoredDraft = useRef(false);
+
+  const steps = useMemo<StepId[]>(
+    () => ["basics", "look", "pages", "social", ...(isEcommerce ? (["ecommerce"] as const) : [])],
+    [isEcommerce],
+  );
 
   const {
     register,
     handleSubmit,
     control,
     watch,
+    trigger,
+    reset,
     formState: { errors },
   } = useForm<BriefFormValues>({
     resolver: zodResolver(briefSchema),
@@ -91,7 +116,56 @@ export function OnboardingForm({
 
   const domainChoice = watch("domainChoice");
 
+  // Restore a locally-saved draft once, on first mount, if the user
+  // navigated away mid-form and came back.
+  useEffect(() => {
+    if (restoredDraft.current || locked) return;
+    restoredDraft.current = true;
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw) as Partial<BriefFormValues>;
+      reset({ pagesNeeded: [], contactEmail: accountEmail, brandColors: [], referenceUrls: [], ...draft });
+      toast.info("Restored your saved progress.");
+    } catch {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    }
+  }, [accountEmail, locked, reset]);
+
+  // Debounced autosave of every text/selection field (not the file inputs,
+  // which can't be serialized to localStorage — logo/photos are only ever
+  // attached at final submit anyway).
+  useEffect(() => {
+    if (locked) return;
+    const subscription = watch((values) => {
+      const timeout = setTimeout(() => {
+        window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(values));
+      }, 400);
+      return () => clearTimeout(timeout);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, locked]);
+
+  async function goNext() {
+    const fields = REQUIRED_FIELDS_BY_STEP[steps[stepIndex]];
+    const valid = fields.length === 0 || (await trigger(fields));
+    if (!valid) return;
+    setStepIndex((i) => Math.min(i + 1, steps.length - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goBack() {
+    setStepIndex((i) => Math.max(i - 1, 0));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function onSubmit(values: BriefFormValues) {
+    // Client-side validation already passed for handleSubmit to call this,
+    // so this is the commit point — clear the draft now rather than after
+    // the server round-trip, since a successful submit redirects server-side
+    // and never returns control to run cleanup here.
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+
     const formData = new FormData();
     formData.append("data", JSON.stringify(values));
     if (logo) formData.append("logo", logo);
@@ -105,6 +179,9 @@ export function OnboardingForm({
     });
   }
 
+  const currentStep = steps[stepIndex];
+  const isLastStep = stepIndex === steps.length - 1;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
       {locked && (
@@ -116,7 +193,22 @@ export function OnboardingForm({
           for further changes.
         </p>
       )}
+
+      {!locked && (
+        <div className="flex items-center gap-2" aria-label={`Step ${stepIndex + 1} of ${steps.length}`}>
+          {steps.map((step, i) => (
+            <div
+              key={step}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                i <= stepIndex ? "bg-accent" : "bg-muted"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
       <fieldset disabled={locked} className="contents">
+      {(locked || currentStep === "basics") && (
       <Card>
         <CardHeader>
           <CardTitle>The basics</CardTitle>
@@ -138,10 +230,15 @@ export function OnboardingForm({
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {(locked || currentStep === "look") && (
       <Card>
         <CardHeader>
           <CardTitle>Look & feel</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Optional — skip anything you&apos;re not sure about yet, we can talk it through later.
+          </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -223,7 +320,9 @@ export function OnboardingForm({
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {(locked || currentStep === "pages") && (
       <Card>
         <CardHeader>
           <CardTitle>Pages & domain</CardTitle>
@@ -280,10 +379,14 @@ export function OnboardingForm({
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {(locked || currentStep === "social") && (
+      <>
       <Card>
         <CardHeader>
           <CardTitle>Social links</CardTitle>
+          <p className="text-xs text-muted-foreground">Optional.</p>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
@@ -325,8 +428,10 @@ export function OnboardingForm({
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
 
-      {isEcommerce && (
+      {isEcommerce && (locked || currentStep === "ecommerce") && (
         <Card>
           <CardHeader>
             <CardTitle>E-commerce details</CardTitle>
@@ -384,11 +489,22 @@ export function OnboardingForm({
         </Card>
       )}
 
-      <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending}>
-          {pending ? "Submitting…" : "Submit brief"}
-        </Button>
-      </div>
+      {locked ? null : (
+        <div className="flex items-center justify-between">
+          <Button type="button" variant="outline" onClick={goBack} disabled={stepIndex === 0}>
+            Back
+          </Button>
+          {isLastStep ? (
+            <Button type="submit" size="lg" disabled={pending}>
+              {pending ? "Submitting…" : "Submit brief"}
+            </Button>
+          ) : (
+            <Button type="button" size="lg" onClick={goNext}>
+              Continue
+            </Button>
+          )}
+        </div>
+      )}
       </fieldset>
     </form>
   );
