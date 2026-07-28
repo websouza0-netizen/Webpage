@@ -8,7 +8,10 @@ import { OWNER_EMAIL } from "@/lib/email/resend";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const explicitNext = searchParams.get("next");
+  const rawNext = searchParams.get("next");
+  // login/page.tsx always sends `next=/dashboard` by default, so treat that
+  // default value the same as "no explicit next" for the admin-redirect check below.
+  const explicitNext = rawNext && rawNext !== "/dashboard" ? rawNext : null;
 
   if (code) {
     const supabase = await createClient();
