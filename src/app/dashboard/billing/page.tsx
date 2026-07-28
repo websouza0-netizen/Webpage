@@ -12,7 +12,7 @@ import { getServerLocale, dictionaryFor } from "@/lib/i18n/server";
 
 const ADDONS = [
   { type: "email_pro" as const, name: "Professional email", description: "A branded inbox for your domain." },
-  { type: "manutencao" as const, name: "Manutenção", description: "Ongoing maintenance and small tweaks." },
+  { type: "manutencao" as const, name: "Maintenance", description: "Ongoing maintenance and small tweaks." },
 ];
 
 export default async function BillingPage() {

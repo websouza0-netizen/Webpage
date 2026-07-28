@@ -332,6 +332,7 @@ export const pt: typeof en = {
       noBriefYet: "Ainda sem briefing",
       noPipelineYet: "Ainda sem pipeline",
       done: "concluído",
+      current: "atual",
     },
     clientDetail: {
       subscription: "Assinatura",

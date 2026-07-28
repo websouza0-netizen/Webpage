@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import {
@@ -29,15 +30,21 @@ function hasBeenSeen() {
 export function ThemePreferenceDialog() {
   const { setTheme } = useTheme();
   const mounted = useMounted();
-  const open = mounted && !hasBeenSeen();
+  // hasBeenSeen() only reflects a state change once dismissed becomes true —
+  // localStorage writes alone don't trigger a re-render, so without this
+  // flag the dialog could never actually close from a click.
+  const [dismissed, setDismissed] = useState(false);
+  const open = mounted && !dismissed && !hasBeenSeen();
 
   function choose(theme: "light" | "dark") {
     setTheme(theme);
     window.localStorage.setItem(SEEN_KEY, "1");
+    setDismissed(true);
   }
 
   function dismiss() {
     window.localStorage.setItem(SEEN_KEY, "1");
+    setDismissed(true);
   }
 
   return (

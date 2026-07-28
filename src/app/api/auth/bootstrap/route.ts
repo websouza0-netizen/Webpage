@@ -20,9 +20,15 @@ export async function POST() {
       (user.user_metadata?.full_name as string | undefined) ??
       (user.user_metadata?.name as string | undefined) ??
       null;
+    const { data: clientRow } = await supabase
+      .from("clients")
+      .select("locale")
+      .eq("id", user.id)
+      .maybeSingle();
+    const locale = clientRow?.locale === "pt" ? "pt" : "en";
     // Best-effort: a Gmail hiccup shouldn't fail account bootstrap.
     await Promise.allSettled([
-      sendWelcomeEmail(user.email, name),
+      sendWelcomeEmail(user.email, name, locale),
       notifyAdmin("Novo registo na WebSouza", `Novo cliente: ${user.email}`),
     ]);
   }

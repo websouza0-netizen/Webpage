@@ -51,7 +51,7 @@ export default async function AdminClientsPage() {
     if (!clientSteps || clientSteps.length === 0) return t.noPipelineYet;
     const pending = clientSteps.find((s) => s.status === "pending");
     const current = pending ?? clientSteps[clientSteps.length - 1];
-    return pending ? current.title_en : `${current.title_en} (${t.done})`;
+    return pending ? `${current.title_en} (${t.current})` : `${current.title_en} (${t.done})`;
   }
 
   return (

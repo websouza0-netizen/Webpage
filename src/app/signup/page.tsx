@@ -38,6 +38,7 @@ function SignupForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,9 +51,15 @@ function SignupForm() {
       setError(error.message);
       return;
     }
-    if (data.user) {
-      await fetch("/api/auth/bootstrap", { method: "POST" });
+    // If email confirmation is required, signUp returns a user but no
+    // session — there's nothing to bootstrap yet and /dashboard would just
+    // bounce back to /login, so tell the user to check their inbox instead.
+    if (!data.session) {
+      setLoading(false);
+      setConfirmationSent(true);
+      return;
     }
+    await fetch("/api/auth/bootstrap", { method: "POST" });
     setLoading(false);
     router.push(next);
     router.refresh();
@@ -80,41 +87,50 @@ function SignupForm() {
           <CardDescription>Create your WebSouza account.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button type="button" variant="outline" onClick={handleGoogle}>
-            Continue with Google
-          </Button>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="h-px flex-1 bg-border" />
-            or
-            <div className="h-px flex-1 bg-border" />
-          </div>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating account…" : "Create account"}
-            </Button>
-          </form>
+          {confirmationSent ? (
+            <p className="text-center text-sm text-muted-foreground">
+              We sent a confirmation link to <span className="text-foreground">{email}</span>.
+              Follow it to finish creating your account, then log in.
+            </p>
+          ) : (
+            <>
+              <Button type="button" variant="outline" onClick={handleGoogle}>
+                Continue with Google
+              </Button>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />
+                or
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Creating account…" : "Create account"}
+                </Button>
+              </form>
+            </>
+          )}
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link href="/login" className="text-foreground underline underline-offset-4">

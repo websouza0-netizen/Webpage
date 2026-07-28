@@ -21,15 +21,22 @@ export async function GET(request: NextRequest) {
       // Self-heals any account (fresh Google sign-in, or a legacy user)
       // missing a `clients` row on this login.
       const { isNewClient } = await ensureClientRecord(data.user);
+      const serviceRole = createServiceRoleClient();
 
       if (isNewClient && data.user.email) {
         const name =
           (data.user.user_metadata?.full_name as string | undefined) ??
           (data.user.user_metadata?.name as string | undefined) ??
           null;
+        const { data: clientRow } = await serviceRole
+          .from("clients")
+          .select("locale")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        const locale = clientRow?.locale === "pt" ? "pt" : "en";
         // Best-effort: a Gmail hiccup shouldn't block the OAuth redirect.
         await Promise.allSettled([
-          sendWelcomeEmail(data.user.email, name),
+          sendWelcomeEmail(data.user.email, name, locale),
           notifyAdmin("Novo registo na WebSouza", `Novo cliente: ${data.user.email}`),
         ]);
       }
@@ -42,7 +49,6 @@ export async function GET(request: NextRequest) {
         if (data.user.email === OWNER_EMAIL) {
           next = "/admin";
         } else {
-          const serviceRole = createServiceRoleClient();
           const { data: adminRow } = await serviceRole
             .from("admins")
             .select("user_id")

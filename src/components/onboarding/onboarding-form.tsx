@@ -108,7 +108,12 @@ export function OnboardingForm({
     defaultValues: {
       pagesNeeded: [],
       contactEmail: accountEmail,
-      brandColors: [],
+      // Seeded to match the color inputs' own display fallback (#8a6212) —
+      // leaving this [] lets the three brandColors.{i} Controllers punch
+      // undefined holes into the array the moment they mount, which then
+      // fails z.array(z.string()) silently (no field renders a brandColors
+      // error), permanently blocking submission with no visible feedback.
+      brandColors: ["#8a6212", "#8a6212", "#8a6212"],
       referenceUrls: [],
       ...defaultValues,
     },
@@ -125,7 +130,18 @@ export function OnboardingForm({
     if (!raw) return;
     try {
       const draft = JSON.parse(raw) as Partial<BriefFormValues>;
-      reset({ pagesNeeded: [], contactEmail: accountEmail, brandColors: [], referenceUrls: [], ...draft });
+      // A draft saved before the brandColors fix may have [null, null, null]
+      // baked in, which fails validation the same silent way — drop it
+      // rather than restore a brief that can never be submitted.
+      const brandColors =
+        draft.brandColors?.every((c) => typeof c === "string") ? draft.brandColors : ["#8a6212", "#8a6212", "#8a6212"];
+      reset({
+        pagesNeeded: [],
+        contactEmail: accountEmail,
+        referenceUrls: [],
+        ...draft,
+        brandColors,
+      });
       toast.info("Restored your saved progress.");
     } catch {
       window.localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -183,7 +199,12 @@ export function OnboardingForm({
   const isLastStep = stepIndex === steps.length - 1;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit(onSubmit, () =>
+        toast.error("Some details need fixing before this can be submitted — check the earlier steps."),
+      )}
+      className="flex flex-col gap-6"
+    >
       {locked && (
         <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
           Your brief is locked now that development has started — use{" "}

@@ -330,6 +330,7 @@ export const en = {
       noBriefYet: "No brief yet",
       noPipelineYet: "No pipeline yet",
       done: "done",
+      current: "current",
     },
     clientDetail: {
       subscription: "Subscription",

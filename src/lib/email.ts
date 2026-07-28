@@ -36,13 +36,28 @@ export async function sendEmail(options: {
   });
 }
 
-export async function sendWelcomeEmail(to: string, name?: string | null) {
-  const greeting = name ? `Olá, ${name}!` : "Olá!";
+export async function sendWelcomeEmail(
+  to: string,
+  name?: string | null,
+  locale: "en" | "pt" = "en",
+) {
+  if (locale === "pt") {
+    const greeting = name ? `Olá, ${name}!` : "Olá!";
+    await sendEmail({
+      to,
+      subject: "Bem-vindo à WebSouza",
+      html: `<p>${greeting}</p><p>A sua conta foi criada com sucesso. Já pode aceder ao seu painel para gerir o seu site.</p>`,
+      text: `${greeting} A sua conta foi criada com sucesso.`,
+    });
+    return;
+  }
+
+  const greeting = name ? `Hi, ${name}!` : "Hi!";
   await sendEmail({
     to,
-    subject: "Bem-vindo à WebSouza",
-    html: `<p>${greeting}</p><p>A sua conta foi criada com sucesso. Já pode aceder ao seu painel para gerir o seu site.</p>`,
-    text: `${greeting} A sua conta foi criada com sucesso.`,
+    subject: "Welcome to WebSouza",
+    html: `<p>${greeting}</p><p>Your account was created successfully. You can now access your dashboard to manage your site.</p>`,
+    text: `${greeting} Your account was created successfully.`,
   });
 }
 
