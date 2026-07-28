@@ -1,12 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { ensureClientRecord } from "@/lib/client-bootstrap";
 import { notifyAdmin, sendWelcomeEmail } from "@/lib/email";
+import { OWNER_EMAIL } from "@/lib/email/resend";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const explicitNext = searchParams.get("next");
 
   if (code) {
     const supabase = await createClient();
@@ -27,6 +29,24 @@ export async function GET(request: NextRequest) {
           sendWelcomeEmail(data.user.email, name),
           notifyAdmin("Novo registo na WebSouza", `Novo cliente: ${data.user.email}`),
         ]);
+      }
+
+      let next = explicitNext ?? "/dashboard";
+
+      // Route the owner (and any admins) straight into /admin on login,
+      // mirroring the requireAdmin() gate, unless a specific `next` was requested.
+      if (!explicitNext) {
+        if (data.user.email === OWNER_EMAIL) {
+          next = "/admin";
+        } else {
+          const serviceRole = createServiceRoleClient();
+          const { data: adminRow } = await serviceRole
+            .from("admins")
+            .select("user_id")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+          if (adminRow) next = "/admin";
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`);
